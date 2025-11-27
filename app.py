@@ -4,6 +4,7 @@ import requests
 from PIL import Image
 import base64
 from io import BytesIO
+import pytz  # 新增台北時區支持
 
 # 初始化狀態
 if "current_station" not in st.session_state:
@@ -28,24 +29,26 @@ if uploaded_files:
     speed = st.selectbox("⏱️ 輪播速度", ["5 秒", "10 秒", "30 秒"], index=1)
     interval = {"5 秒":5000, "10 秒":10000, "30 秒":30000}[speed]
 
-    # 顯示第一張照片 + JS 輪播
-    if photo_urls:
-        st.markdown(f"""
-        <div style="text-align:center;">
-          <img id="slideshow" src="{photo_urls[0]}" width="600">
-        </div>
-        <script>
-        var images = {photo_urls};
-        var index = 0;
-        var enable = {"true" if slideshow else "false"};
-        if(enable){{
-            setInterval(function(){{
-                index = (index + 1) % images.length;
-                document.getElementById("slideshow").src = images[index];
-            }}, {interval});
-        }}
-        </script>
-        """, unsafe_allow_html=True)
+    # 顯示第一張照片
+    st.image(photos[0], use_column_width=True)
+
+    # JS 輪播
+    st.markdown(f"""
+    <div style="text-align:center;">
+      <img id="slideshow" src="{photo_urls[0]}" width="600">
+    </div>
+    <script>
+    var images = {photo_urls};
+    var index = 0;
+    var enable = {"true" if slideshow else "false"};
+    if(enable){{
+        setInterval(function(){{
+            index = (index + 1) % images.length;
+            document.getElementById("slideshow").src = images[index];
+        }}, {interval});
+    }}
+    </script>
+    """, unsafe_allow_html=True)
 
 else:
     st.info("請上傳相片（最多五張）")
@@ -75,7 +78,8 @@ if col4.button("➡️ 下一台"):
     st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
 
 # ---------------- 下半部：時間、日期、天氣 ----------------
-now = datetime.datetime.now()
+tz = pytz.timezone("Asia/Taipei")
+now = datetime.datetime.now(tz)
 st.markdown(f"🕒 時間：{now.strftime('%H:%M:%S')}")
 st.markdown(f"📅 日期：{now.strftime('%Y-%m-%d')}")
 
