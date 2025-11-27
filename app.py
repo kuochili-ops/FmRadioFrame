@@ -12,8 +12,8 @@ if "current_station" not in st.session_state:
     st.session_state.current_station = 0
 if "slideshow" not in st.session_state:
     st.session_state.slideshow = False
-if "radio_container" not in st.session_state:
-    st.session_state.radio_container = st.empty()
+if "switching_station" not in st.session_state:
+    st.session_state.switching_station = False
 
 # ---------------- 自動刷新（照片輪播） ----------------
 if st.session_state.slideshow:
@@ -25,16 +25,13 @@ uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["
 if uploaded_files:
     photos = uploaded_files[:5]
 
-    # 顯示目前照片
     current_photo = photos[st.session_state.photo_index]
     img = Image.open(current_photo)
     st.image(img, use_column_width=True)
 
-    # 自動輪播
     if st.session_state.slideshow:
         st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
 
-    # 疊層資訊（右下角）
     tz = pytz.timezone("Asia/Taipei")
     now = datetime.datetime.now(tz)
 
@@ -90,8 +87,12 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 播放器容器（只在切換頻道時更新）
-st.session_state.radio_container.markdown(f"""
+# 播放器顯示 + 切換提示
+if st.session_state.switching_station:
+    st.info("正在切換頻道，請稍候…")
+    st.session_state.switching_station = False
+
+st.markdown(f"""
 <div style="text-align:center; margin-top:10px;">
 <audio controls autoplay>
   <source src="{station['url']}" type="audio/mpeg">
@@ -116,6 +117,7 @@ with col_left:
     """, unsafe_allow_html=True)
     if st.button("📻 頻道切換", key="channel_switch"):
         st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
+        st.session_state.switching_station = True
     st.caption(f"目前頻道：{stations[st.session_state.current_station]['name']}")
 
 # 照片輪播：依狀態變色（綠色/灰色）
