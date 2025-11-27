@@ -12,8 +12,8 @@ if "current_station" not in st.session_state:
     st.session_state.current_station = 0
 if "slideshow" not in st.session_state:
     st.session_state.slideshow = False
-if "switching_station" not in st.session_state:
-    st.session_state.switching_station = False
+if "radio_container" not in st.session_state:
+    st.session_state.radio_container = st.empty()
 
 # ---------------- 自動刷新（照片輪播） ----------------
 if st.session_state.slideshow:
@@ -87,12 +87,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 播放器顯示 + 切換提示
-if st.session_state.switching_station:
-    st.info("正在切換頻道，請稍候…")
-    st.session_state.switching_station = False
-
-st.markdown(f"""
+# 播放器容器（覆蓋舊的，避免多重播放）
+st.session_state.radio_container.markdown(f"""
 <div style="text-align:center; margin-top:10px;">
 <audio controls autoplay>
   <source src="{station['url']}" type="audio/mpeg">
@@ -117,7 +113,6 @@ with col_left:
     """, unsafe_allow_html=True)
     if st.button("📻 頻道切換", key="channel_switch"):
         st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
-        st.session_state.switching_station = True
     st.caption(f"目前頻道：{stations[st.session_state.current_station]['name']}")
 
 # 照片輪播：依狀態變色（綠色/灰色）
