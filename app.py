@@ -2,6 +2,7 @@ import streamlit as st
 import datetime
 import requests
 from PIL import Image
+from streamlit_autorefresh import st_autorefresh
 
 # ---------------- 初始化 session_state ----------------
 if "photo_index" not in st.session_state:
@@ -13,7 +14,7 @@ if "slideshow" not in st.session_state:
 
 # ---------------- 自動刷新 ----------------
 # 每 30 秒刷新一次頁面
-st_autorefresh = st.experimental_autorefresh(interval=30*1000, limit=None, key="refresh")
+st_autorefresh(interval=30 * 1000, key="refresh")
 
 # ---------------- 相片輪播 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片 (最多 5 張)", 
