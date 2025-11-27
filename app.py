@@ -2,11 +2,14 @@ import streamlit as st
 import datetime
 import requests
 
-# ---------------- 相片輪播 ----------------
-uploaded_files = st.file_uploader("📸 上傳相片 (可多選)", type=["jpg","jpeg","png"], accept_multiple_files=True)
-
+# ---------------- 初始化 session_state ----------------
 if "photo_index" not in st.session_state:
     st.session_state.photo_index = 0
+if "current_station" not in st.session_state:
+    st.session_state.current_station = 0
+
+# ---------------- 相片輪播 ----------------
+uploaded_files = st.file_uploader("📸 上傳相片 (可多選)", type=["jpg","jpeg","png"], accept_multiple_files=True)
 
 if uploaded_files:
     current_photo = uploaded_files[st.session_state.photo_index]
@@ -30,9 +33,6 @@ stations = [
     {"name": "中廣音樂網", "url": "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"}
 ]
 
-if "current_station" not in st.session_state:
-    st.session_state.current_station = 0
-
 station = stations[st.session_state.current_station]
 st.markdown(f"<h3>🎵 正在播放：{station['name']}</h3>", unsafe_allow_html=True)
 st.markdown(f"""
@@ -45,4 +45,33 @@ col3, col4 = st.columns(2)
 if col3.button("⬅️ 上一台"):
     st.session_state.current_station = (st.session_state.current_station - 1) % len(stations)
 if col4.button("➡️ 下一台"):
-    st.session_state.current
+    st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
+
+# ---------------- 時間日期 ----------------
+now = datetime.datetime.now()
+st.markdown(f"""
+<div style='position:fixed; top:10px; right:10px; text-align:right; font-size:16px;'>
+🕒 {now.strftime('%H:%M:%S')}<br>📅 {now.strftime('%Y-%m-%d')}
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------- 天氣資訊 ----------------
+API_KEY = "dcd113bba5675965ccf9e60a7e6d06e5"  # 你的 OpenWeatherMap API Key
+city = st.text_input("🌍 輸入城市 (例如 Taipei,TW)", "Taipei,TW")
+
+if API_KEY and city:
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=zh_tw"
+    try:
+        res = requests.get(url).json()
+        if res.get("cod") == 200:
+            temp = res["main"]["temp"]
+            desc = res["weather"][0]["description"]
+            st.markdown(f"""
+            <div style='position:fixed; bottom:10px; right:10px; text-align:right; font-size:16px;'>
+            🌤️ {city}<br>{temp}°C，{desc}
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.warning(f"⚠️ API 錯誤：{res.get('message')}")
+    except Exception as e:
+        st.error(f"⚠️ 無法取得天氣資訊：{e}")
