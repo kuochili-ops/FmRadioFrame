@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import datetime
 
-API_KEY = "dcd113bba5675965ccf9e60a7e6d06e5"  # 你的 API Key
+API_KEY = "dacfd5f7b7e6c05162ac1340b88b6cc0"  # 你的 API Key
 
 # 顯示時間日期
 now = datetime.datetime.now()
