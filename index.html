@@ -33,12 +33,13 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
+        /* 標準 HTML5 播放器控制項 */
         #radioPlayer {
             width: 100%;
             margin: 20px 0;
         }
         .note {
-            color: #28a745; /* 綠色表示成功或已載入 */
+            color: #28a745; 
             font-weight: bold;
             margin-top: 15px;
         }
@@ -58,7 +59,7 @@
 </div>
 
 <script>
-    // 使用您提供的正確 M3U8 串流連結
+    // 這是您成功找到的 M3U8 串流總清單連結
     const radioUrl = 'https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8';
     const audio = document.getElementById('radioPlayer');
     const statusMessage = document.getElementById('statusMessage');
@@ -67,8 +68,9 @@
     if (Hls.isSupported()) {
         const hls = new Hls();
         
-        // 綁定 HLS.js 到 audio 元素並載入串流
+        // 綁定 HLS.js 到 audio 元素
         hls.attachMedia(audio);
+        // 載入 M3U8 串流網址
         hls.loadSource(radioUrl);
         
         hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -76,12 +78,12 @@
             statusMessage.textContent = '✅ 廣播已載入，請點擊播放按鈕。';
         });
 
-        // 處理 HLS 錯誤，如果 HLS 失敗，嘗試使用原生播放器
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
                 console.error("HLS 嚴重錯誤：", data);
                 statusMessage.textContent = '⚠️ 串流載入失敗，嘗試使用瀏覽器原生播放。';
-                // 嘗試讓原生播放器接手
+                
+                // 嘗試讓原生播放器接手 (適用於原生支援 M3U8 的瀏覽器，如 Safari)
                 audio.src = radioUrl;
                 audio.addEventListener('error', () => {
                      statusMessage.textContent = '❌ 無法播放，串流網址可能已失效。';
@@ -90,7 +92,7 @@
         });
 
     } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-        // 如果是 iOS 或 Safari 瀏覽器，它們原生支援 M3U8
+        // 如果是 iOS/Safari，它們原生支援 M3U8
         statusMessage.textContent = '✅ 已載入，請點擊播放按鈕。 (使用原生 M3U8 播放)';
         audio.src = radioUrl;
     } else {
