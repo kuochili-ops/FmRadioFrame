@@ -5,7 +5,7 @@ import streamlit as st
 st.set_page_config(page_title="台灣 FM 廣播選台", layout="centered")
 st.title("📻 台灣 FM 廣播選台")
 
-# 廣播串流清單（可擴充）
+# 廣播串流清單
 stations = [
     {"name": "ICRT 國際社區廣播", "url": "https://live.leanstream.co/ICRTFM-MP3"},
     {"name": "HitFM 北部", "url": "https://hichannel.hinet.net/radio/HitFM"},
@@ -20,24 +20,23 @@ stations = [
 if "index" not in st.session_state:
     st.session_state.index = 0
 
+# 左右鍵選台
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("⬅ 上一台"):
+        st.session_state.index = (st.session_state.index - 1) % len(stations)
+with col2:
+    if st.button("下一台 ➡"):
+        st.session_state.index = (st.session_state.index + 1) % len(stations)
+
 # 顯示目前選台
 current_station = stations[st.session_state.index]
 st.subheader(f"🎶 現在播放：{current_station['name']}")
 
-# 播放音訊（使用 HTML audio，避免 HTTP/HTTPS 混合問題）
+# 播放音訊（HTML audio，避免 HTTP/HTTPS 混合問題）
 st.markdown(f"""
 <audio controls autoplay style="width:100%">
   <source src="{current_station['url']}" type="audio/mpeg">
   您的瀏覽器不支援音訊播放。
 </audio>
 """, unsafe_allow_html=True)
-
-# 左右鍵選台
-col1, col2 = st.columns([1, 1])
-with col1:
-    if st.button("⬅ 上一台"):
-        st.session_state.index = (st.session_state.index - 1) % len(stations)
-        st.experimental_rerun()
-with col2:
-    if st.button("下一台 ➡"):
-        st.session_state.index = (st.session_state.index + 1) % len(stations)
