@@ -4,7 +4,7 @@ import requests
 from PIL import Image
 from streamlit_autorefresh import st_autorefresh
 
-# ---------------- 初始化 session_state ----------------
+# 初始化狀態
 if "photo_index" not in st.session_state:
     st.session_state.photo_index = 0
 if "current_station" not in st.session_state:
@@ -12,30 +12,31 @@ if "current_station" not in st.session_state:
 if "slideshow" not in st.session_state:
     st.session_state.slideshow = False
 
-# ---------------- 自動刷新 ----------------
-# 每 30 秒刷新一次頁面
+# 自動刷新（每 30 秒）
 st_autorefresh(interval=30 * 1000, key="refresh")
 
-# ---------------- 相片輪播 ----------------
-uploaded_files = st.file_uploader("📸 上傳相片 (最多 5 張)", 
-                                  type=["jpg","jpeg","png"], 
-                                  accept_multiple_files=True)
+# ---------------- 上半部：相框區 ----------------
+st.markdown("## 🖼️ 相框展示區")
+
+uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
 if uploaded_files:
-    photos = uploaded_files[:5]  # 限制最多五張
+    photos = uploaded_files[:5]
     st.session_state.slideshow = st.checkbox("▶️ 啟動輪播")
 
     current_photo = photos[st.session_state.photo_index]
     img = Image.open(current_photo)
 
-    # 判斷橫式或直式顯示
+    # 判斷橫式或直式
     if img.width >= img.height:
-        st.image(img, caption=f"第 {st.session_state.photo_index+1} 張", use_column_width=True)
+        st.image(img, use_column_width=True)
     else:
-        st.image(img, caption=f"第 {st.session_state.photo_index+1} 張", width=400)
+        st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
+        st.image(img, width=400)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # 手動切換
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1])
     if col1.button("⬅️ 上一張"):
         st.session_state.photo_index = (st.session_state.photo_index - 1) % len(photos)
     if col2.button("➡️ 下一張"):
@@ -45,9 +46,15 @@ if uploaded_files:
     if st.session_state.slideshow:
         st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
 else:
-    st.info("請先上傳相片（最多五張）")
+    st.info("請上傳相片（最多五張）")
 
-# ---------------- 電台播放器 ----------------
+# ---------------- 下半部：資訊與收音機 ----------------
+st.markdown("---")
+st.markdown("## 📻 收音機與生活資訊")
+
+col_left, col_right = st.columns([2, 1])
+
+# 左側：收音機
 stations = [
     {"name": "ICRT", "url": "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
     {"name": "台北電台", "url": "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
@@ -58,25 +65,26 @@ stations = [
 ]
 
 station = stations[st.session_state.current_station]
-st.markdown(f"<h3>🎵 正在播放：{station['name']}</h3>", unsafe_allow_html=True)
-st.markdown(f"""
+col_left.markdown(f"### 🎶 正在播放：{station['name']}")
+col_left.markdown(f"""
 <audio controls autoplay key="{station['url']}">
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
 
-col3, col4 = st.columns(2)
-if col3.button("⬅️ 上一台"):
+c1, c2 = col_left.columns([1, 1])
+if c1.button("⬅️ 上一台"):
     st.session_state.current_station = (st.session_state.current_station - 1) % len(stations)
-if col4.button("➡️ 下一台"):
+if c2.button("➡️ 下一台"):
     st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
 
-# ---------------- 下半部資訊 ----------------
+# 右側：時間、日期、天氣
 now = datetime.datetime.now()
-st.markdown(f"🕒 {now.strftime('%H:%M:%S')}  📅 {now.strftime('%Y-%m-%d')}")
+col_right.markdown(f"🕒 時間：{now.strftime('%H:%M:%S')}")
+col_right.markdown(f"📅 日期：{now.strftime('%Y-%m-%d')}")
 
-API_KEY = "dcd113bba5675965ccf9e60a7e6d06e5"  # 你的 OpenWeatherMap API Key
-city = st.text_input("🌍 輸入城市 (例如 Taipei,TW)", "Taipei,TW")
+API_KEY = "dcd113bba5675965ccf9e60a7e6d06e5"
+city = col_right.text_input("🌍 城市（例如 Taipei,TW）", "Taipei,TW")
 
 if API_KEY and city:
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=zh_tw"
@@ -85,8 +93,8 @@ if API_KEY and city:
         if res.get("cod") == 200:
             temp = res["main"]["temp"]
             desc = res["weather"][0]["description"]
-            st.markdown(f"🌤️ {city}：{temp}°C，{desc}")
+            col_right.markdown(f"🌤️ {city}：{temp}°C，{desc}")
         else:
-            st.warning(f"⚠️ API 錯誤：{res.get('message')}")
+            col_right.warning(f"⚠️ API 錯誤：{res.get('message')}")
     except Exception as e:
-        st.error(f"⚠️ 無法取得天氣資訊：{e}")
+        col_right.error(f"⚠️ 無法取得天氣資訊：{e}")
