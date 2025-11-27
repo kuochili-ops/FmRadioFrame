@@ -32,7 +32,7 @@ if st.button("開始輪播"):
 
 # --- FM 廣播串流 ---
 st.subheader("FM 廣播串流")
-stream_url = "http://fm983.cityfm.tw:8080/983.mp3"  # 可替換其他串流
+stream_url = "https://stream-uk1.radioparadise.com/mp3-192"  # 可替換其他串流
 
 st.audio(stream_url, format="audio/mp3")
 st.write("🎶 正在播放：FM98.3 城市廣播")
