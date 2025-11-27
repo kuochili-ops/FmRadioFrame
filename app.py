@@ -31,3 +31,19 @@ st.subheader("FM 廣播選台 (MP3 播放清單)")
 stations = [
     {"name": "音樂台 1", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
     {"name": "音樂台 2", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+    {"name": "音樂台 3", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"}
+]  # ← 注意這裡要有結尾的 ]
+
+if "station_index" not in st.session_state:
+    st.session_state.station_index = 0
+
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("⬅ 上一台"):
+        st.session_state.station_index = (st.session_state.station_index - 1) % len(stations)
+with col2:
+    if st.button("下一台 ➡"):
+        st.session_state.station_index = (st.session_state.station_index + 1) % len(stations)
+
+current_station = stations[st.session_state.station_index]
+st.subheader(f"🎶 現在播放：{current_station['name']}")
