@@ -1,7 +1,7 @@
 
 import streamlit as st
 
-st.title("📻 台灣 FM 廣播 + 圖片輪播")
+st.title("📻 台灣 FM 廣播選台")
 
 stations = [
     {"name": "ICRT 國際社區廣播", "iframe": "https://www.radiotaiwan.tw/station/icrt", "audio": "https://live.leanstream.co/ICRTFM-MP3"},
@@ -26,6 +26,7 @@ st.subheader(f"🎶 現在播放：{current_station['name']}")
 
 if current_station["iframe"]:
     st.markdown(f"""
-    {current_station["iframe"]}</iframe>
+    <iframe src="{current_station['iframe']}" width="100%" height="500"></iframe>
     """, unsafe_allow_html=True)
 else:
+    st.audio(current_station["audio"], format="audio/mp3")
