@@ -22,7 +22,7 @@ if st.button("開始輪播"):
     auto_slide()
 
 # 廣播選台 (固定 MP3)
-stations = [
+stations = [ 
     {"name": "音樂台 1", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
     {"name": "音樂台 2", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
     {"name": "音樂台 3", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"}
