@@ -12,6 +12,8 @@ if "current_station" not in st.session_state:
     st.session_state.current_station = 0
 if "slideshow" not in st.session_state:
     st.session_state.slideshow = False
+if "radio_initialized" not in st.session_state:
+    st.session_state.radio_initialized = False
 
 # ---------------- 自動刷新（照片輪播） ----------------
 if st.session_state.slideshow:
@@ -88,14 +90,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 播放器置中
-st.markdown(f"""
-<div style="text-align:center; margin-top:10px;">
-<audio controls autoplay key="{station['url']}">
-  <source src="{station['url']}" type="audio/mpeg">
-</audio>
-</div>
-""", unsafe_allow_html=True)
+# 播放器只初始化一次，不隨 rerun 更新
+if not st.session_state.radio_initialized:
+    st.session_state.radio_initialized = True
+    st.markdown(f"""
+    <div style="text-align:center; margin-top:10px;">
+    <audio controls autoplay>
+      <source src="{station['url']}" type="audio/mpeg">
+    </audio>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ---------------- 控制列（左右排列 + 狀態底色 + 狀態提示） ----------------
 col_left, col_right = st.columns([1,1])
