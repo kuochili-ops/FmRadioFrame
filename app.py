@@ -17,10 +17,9 @@ st.title("📻 台灣電台播放器")
 station = stations[st.session_state.current]
 st.markdown(f"### 正在播放：{station['name']}")
 
-# 用 st.empty() 來確保播放器刷新
-player = st.empty()
-player.markdown(f"""
-<audio controls autoplay>
+# 用 key 保證每次切換都刷新
+st.markdown(f"""
+<audio controls autoplay key="{station['url']}">
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
@@ -28,9 +27,5 @@ player.markdown(f"""
 col1, col2 = st.columns(2)
 if col1.button("⬅️ 上一台"):
     st.session_state.current = (st.session_state.current - 1) % len(stations)
-    st.experimental_set_query_params(refresh="true")  # 強制刷新
-    st.rerun()
 if col2.button("➡️ 下一台"):
     st.session_state.current = (st.session_state.current + 1) % len(stations)
-    st.experimental_set_query_params(refresh="true")
-    st.rerun()
