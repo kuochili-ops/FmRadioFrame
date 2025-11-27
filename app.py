@@ -97,14 +97,15 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- 控制列（左右排列 + 顏色） ----------------
+# ---------------- 控制列（左右排列 + 狀態底色 + 狀態提示） ----------------
 col_left, col_right = st.columns([1,1])
 
+# 頻道切換：固定藍色
 with col_left:
     st.markdown("""
     <style>
     div[data-testid="channel_switch"] button {
-        background-color: #1E90FF;
+        background-color: #1E90FF; /* 藍色 */
         color: white;
         font-weight: bold;
         width: 100%;
@@ -113,17 +114,23 @@ with col_left:
     """, unsafe_allow_html=True)
     if st.button("📻 頻道切換", key="channel_switch"):
         st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
+    st.caption(f"目前頻道：{stations[st.session_state.current_station]['name']}")
+
+# 照片輪播：依狀態變色（綠色/灰色）
+slideshow_color = "#32CD32" if st.session_state.slideshow else "#808080"
+slideshow_status = "輪播中" if st.session_state.slideshow else "已停止"
 
 with col_right:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-    div[data-testid="photo_toggle"] button {
-        background-color: #32CD32;
+    div[data-testid="photo_toggle"] button {{
+        background-color: {slideshow_color};
         color: white;
         font-weight: bold;
         width: 100%;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
     if st.button("🖼️ 照片輪播", key="photo_toggle"):
         st.session_state.slideshow = not st.session_state.slideshow
+    st.caption(f"狀態：{slideshow_status}")
