@@ -12,41 +12,52 @@ stations = [
     {"name": "中廣音樂網", "url": "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"}
 ]
 
+# 初始化電台狀態
 if "current" not in st.session_state:
     st.session_state.current = 0
 
-st.title("🖼️ 相框收音機")
-
-# 顯示電台
 station = stations[st.session_state.current]
-st.markdown(f"### 🎶 正在播放：{station['name']}")
+
+# 主標題
+st.markdown("<h1 style='text-align:center;'>🖼️ 相框收音機</h1>", unsafe_allow_html=True)
+
+# 播放器
+st.markdown(f"<h3>🎵 正在播放：{station['name']}</h3>", unsafe_allow_html=True)
 st.markdown(f"""
 <audio controls autoplay key="{station['url']}">
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
 
+# 切換按鈕
 col1, col2 = st.columns(2)
 if col1.button("⬅️ 上一台"):
     st.session_state.current = (st.session_state.current - 1) % len(stations)
 if col2.button("➡️ 下一台"):
     st.session_state.current = (st.session_state.current + 1) % len(stations)
 
-# 顯示時間日期
+# 顯示時間與日期（右上角）
 now = datetime.datetime.now()
-st.sidebar.markdown(f"🕒 時間：{now.strftime('%H:%M:%S')}")
-st.sidebar.markdown(f"📅 日期：{now.strftime('%Y-%m-%d')}")
+st.markdown(f"""
+<div style='position:fixed; top:10px; right:10px; text-align:right; font-size:16px;'>
+🕒 {now.strftime('%H:%M:%S')}<br>📅 {now.strftime('%Y-%m-%d')}
+</div>
+""", unsafe_allow_html=True)
 
-# 天氣資訊
-city = st.sidebar.text_input("輸入城市名稱", "Taipei")
+# 天氣資訊（右下角）
+API_KEY = "dcd113bba5675965ccf9e60a7e6d06e5"  # 你的 OpenWeatherMap API Key
+city = st.text_input("🌍 輸入城市（例如 Taipei）", "Taipei")
 
-API_KEY = "你的OpenWeatherMap_API_KEY"  # 需要自己申請
-if city:
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&lang=zh_tw&units=metric"
+if API_KEY and city:
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric&lang=zh_tw"
     try:
-        data = requests.get(url).json()
-        temp = data["main"]["temp"]
-        desc = data["weather"][0]["description"]
-        st.sidebar.markdown(f"🌤️ {city}：{temp}°C，{desc}")
+        res = requests.get(url).json()
+        temp = res["main"]["temp"]
+        desc = res["weather"][0]["description"]
+        st.markdown(f"""
+        <div style='position:fixed; bottom:10px; right:10px; text-align:right; font-size:16px;'>
+        🌤️ {city}<br>{temp}°C，{desc}
+        </div>
+        """, unsafe_allow_html=True)
     except:
-        st.sidebar.markdown("⚠️ 無法取得天氣資訊")
+        st.markdown("⚠️ 無法取得天氣資訊")
