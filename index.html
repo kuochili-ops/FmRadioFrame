@@ -1,105 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>臺北廣播電臺背景播放器 (FM93.1)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-        h1 {
-            color: #1a73e8;
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        p {
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        /* 標準 HTML5 播放器控制項 */
-        #radioPlayer {
-            width: 100%;
-            margin: 20px 0;
-        }
-        .note {
-            color: #28a745; 
-            font-weight: bold;
-            margin-top: 15px;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta charset="UTF-8">
+  <title>台灣電台播放器</title>
 </head>
 <body>
+  <h1>📻 線上收音機</h1>
 
-<div class="container">
-    <h1>📻 臺北廣播電臺 FM 93.1</h1>
-    <p>點擊播放後，聲音將在背景持續播放。</p>
+  <p>ICRT</p>
+  <audio controls>
+    <source src="https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw" type="audio/mpeg">
+  </audio>
 
-    <audio id="radioPlayer" controls preload="none"></audio>
-    
-    <p class="note" id="statusMessage">載入廣播串流中...</p>
-    
-</div>
+  <p>台北電台</p>
+  <audio controls>
+    <source src="https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8" type="application/x-mpegURL">
+  </audio>
 
-<script>
-    // 這是您成功找到的 M3U8 串流總清單連結
-    const radioUrl = 'https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8';
-    const audio = document.getElementById('radioPlayer');
-    const statusMessage = document.getElementById('statusMessage');
+  <p>中廣流行網</p>
+  <audio controls>
+    <source src="https://stream.rcs.revma.com/aw9uqyxy2tzuv" type="audio/mpeg">
+  </audio>
 
-    // 檢查瀏覽器是否支援 HLS.js
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        
-        // 綁定 HLS.js 到 audio 元素
-        hls.attachMedia(audio);
-        // 載入 M3U8 串流網址
-        hls.loadSource(radioUrl);
-        
-        hls.on(Hls.Events.MANIFEST_PARSED, function () {
-            // Manifest 載入成功
-            statusMessage.textContent = '✅ 廣播已載入，請點擊播放按鈕。';
-        });
-
-        hls.on(Hls.Events.ERROR, function (event, data) {
-            if (data.fatal) {
-                console.error("HLS 嚴重錯誤：", data);
-                statusMessage.textContent = '⚠️ 串流載入失敗，嘗試使用瀏覽器原生播放。';
-                
-                // 嘗試讓原生播放器接手 (適用於原生支援 M3U8 的瀏覽器，如 Safari)
-                audio.src = radioUrl;
-                audio.addEventListener('error', () => {
-                     statusMessage.textContent = '❌ 無法播放，串流網址可能已失效。';
-                });
-            }
-        });
-
-    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-        // 如果是 iOS/Safari，它們原生支援 M3U8
-        statusMessage.textContent = '✅ 已載入，請點擊播放按鈕。 (使用原生 M3U8 播放)';
-        audio.src = radioUrl;
-    } else {
-        // 瀏覽器不支援
-        statusMessage.textContent = '❌ 您的瀏覽器不支援此串流格式。';
-    }
-</script>
-
+  <!-- 其他電台依序加上 -->
 </body>
 </html>
