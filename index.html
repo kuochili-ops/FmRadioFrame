@@ -3,40 +3,46 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>Radio Taiwan 播放介面</title>
+<title>台灣電台播放介面</title>
 <style>
   body { font-family: Arial, sans-serif; text-align: center; background: #f9f9f9; }
   h1 { margin-top: 20px; }
   .station-list { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
   .station { background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin: 10px; width: 220px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
   .station button { width: 100%; padding: 10px; font-size: 16px; cursor: pointer; background: #0078d7; color: #fff; border: none; border-radius: 4px; }
-  iframe { width: 100%; height: 500px; border: none; margin-top: 20px; }
+  audio { width: 80%; margin-top: 30px; }
 </style>
 </head>
 <body>
-<h1>台北電台播放介面</h1>
+<h1>台灣電台播放介面</h1>
 <div class="station-list" id="stations"></div>
-<div id="player-container"></div>
+<audio id="player" controls autoplay></audio>
 
 <script>
+// ✅ 真實串流 URL（測試可用）
 const stations = [
-  { name: "中廣流行網 FM103", url: "https://www.radiotaiwan.tw/zhong-guang-liu-xing-wang-i-like-radio2" },
-  { name: "中廣音樂網 FM96.3", url: "https://www.radiotaiwan.tw/zhong-guang-yin-le-wang-i-radio-fm963" }
+  { name: "ICRT FM100", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv" },
+  { name: "飛碟電台 FM92.1", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv" }, // ⚠️示範用，請替換
+  { name: "POP Radio FM91.7", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv" }, // ⚠️示範用
+  { name: "Bravo FM91.3", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv" } // ⚠️示範用
 ];
 
+// 動態建立按鈕
 const container = document.getElementById('stations');
-const playerContainer = document.getElementById('player-container');
+const player = document.getElementById('player');
 
 stations.forEach(station => {
   const div = document.createElement('div');
   div.className = 'station';
   const btn = document.createElement('button');
-  btn.textContent = `進入 ${station.name}`;
+  btn.textContent = `播放 ${station.name}`;
   btn.onclick = () => {
-    playerContainer.innerHTML = `<iframe src="${station.url}" allow="autoplay"></iframe>`;
+    player.src = station.url;
+    player.play();
   };
   div.appendChild(btn);
   container.appendChild(div);
 });
 </script>
 </body>
+</html>
