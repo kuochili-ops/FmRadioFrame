@@ -15,23 +15,23 @@ if "slideshow" not in st.session_state:
 if "radio_container" not in st.session_state:
     st.session_state.radio_container = st.empty()
 
-# ---------------- 自動刷新（照片輪播） ----------------
-if st.session_state.slideshow:
-    st_autorefresh(interval=5000, key="slideshow_refresh")
-
 # ---------------- 相框區 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
 
 if uploaded_files:
     photos = uploaded_files[:5]
 
+    # 自動刷新（照片輪播）
+    if st.session_state.slideshow:
+        st_autorefresh(interval=5000, key="slideshow_refresh")
+        st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
+
+    # 顯示目前照片
     current_photo = photos[st.session_state.photo_index]
     img = Image.open(current_photo)
     st.image(img, use_column_width=True)
 
-    if st.session_state.slideshow:
-        st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
-
+    # 疊層資訊（右下角）
     tz = pytz.timezone("Asia/Taipei")
     now = datetime.datetime.now(tz)
 
