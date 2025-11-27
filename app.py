@@ -73,22 +73,57 @@ stations = [
 ]
 
 station = stations[st.session_state.current_station]
-st.markdown(f"### 🎶 {station['name']}")
+
+# 頻道名稱（小字 + 白字 + 半透明黑底）
 st.markdown(f"""
-<div style="text-align:center;">
+<div style="text-align:center; margin-top:10px;">
+  <span style="background:rgba(0,0,0,0.5); 
+               color:white; 
+               padding:6px 12px; 
+               border-radius:6px; 
+               font-size:16px; 
+               font-weight:bold;">
+    🎶 {station['name']}
+  </span>
+</div>
+""", unsafe_allow_html=True)
+
+# 播放器置中
+st.markdown(f"""
+<div style="text-align:center; margin-top:10px;">
 <audio controls autoplay key="{station['url']}">
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- 控制列（同一排兩個按鈕） ----------------
-col1, col2 = st.columns([1,1])
+# ---------------- 控制列（左右排列 + 顏色） ----------------
+col_left, col_right = st.columns([1,1])
 
-with col1:
+with col_left:
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"] button {
+        background-color: #1E90FF; /* 藍色 */
+        color: white;
+        font-weight: bold;
+        width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     if st.button("📻 頻道切換"):
         st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
 
-with col2:
+with col_right:
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"] button {
+        background-color: #32CD32; /* 綠色 */
+        color: white;
+        font-weight: bold;
+        width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     if st.button("🖼️ 照片輪播"):
         st.session_state.slideshow = not st.session_state.slideshow
