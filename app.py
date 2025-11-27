@@ -1,38 +1,43 @@
 
 import streamlit as st
-import time
 
-# 設定頁面標題
-st.set_page_config(page_title="FM Radio + Photo Frame", layout="centered")
+# 設定頁面
+st.set_page_config(page_title="台灣 FM 廣播選台", layout="centered")
+st.title("📻 台灣 FM 廣播選台")
 
-st.title("📻 FM 收音機 + 相片輪播")
+# 廣播串流清單（可擴充）
+stations = [
+    {"name": "ICRT 國際社區廣播", "url": "https://live.leanstream.co/ICRTFM-MP3"},
+    {"name": "HitFM 北部", "url": "https://hichannel.hinet.net/radio/HitFM"},
+    {"name": "中廣音樂網 iRadio", "url": "https://hichannel.hinet.net/radio/iRadio"},
+    {"name": "飛揚調頻 FM89.5", "url": "http://asiafm.rastream.com/asiafm-fly"},
+    {"name": "大愛網路電台", "url": "http://radiolive.newdaai.tv:8020"},
+    {"name": "寶島新聲 FM98.5", "url": "http://stream.superfm99-1.com.tw:8555/"},
+    {"name": "大千電台 FM99.1", "url": "http://stream.superfm99-1.com.tw:8554/"},
+]
 
-# --- 圖片輪播 ---
-st.subheader("相片輪播")
-sample_photos = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"]
-
-# 使用 session state 控制圖片索引
+# 初始化選台索引
 if "index" not in st.session_state:
     st.session_state.index = 0
 
-# 顯示圖片
-img_placeholder = st.empty()
-img_placeholder.image(sample_photos[st.session_state.index], use_column_width=True)
+# 顯示目前選台
+current_station = stations[st.session_state.index]
+st.subheader(f"🎶 現在播放：{current_station['name']}")
 
-# 自動輪播（每 5 秒換一張）
-def auto_slide():
-    for _ in range(10):  # 播放 10 次循環
-        time.sleep(5)
-        st.session_state.index = (st.session_state.index + 1) % len(sample_photos)
-        img_placeholder.image(sample_photos[st.session_state.index], use_column_width=True)
+# 播放音訊（使用 HTML audio，避免 HTTP/HTTPS 混合問題）
+st.markdown(f"""
+<audio controls autoplay style="width:100%">
+  <source src="{current_station['url']}" type="audio/mpeg">
+  您的瀏覽器不支援音訊播放。
+</audio>
+""", unsafe_allow_html=True)
 
-# 啟動輪播按鈕
-if st.button("開始輪播"):
-    auto_slide()
-
-# --- FM 廣播串流 ---
-st.subheader("FM 廣播串流")
-stream_url = "https://stream-uk1.radioparadise.com/mp3-192"  # 可替換其他串流
-
-st.audio(stream_url, format="audio/mp3")
-st.write("🎶 正在播放：FM98.3 城市廣播")
+# 左右鍵選台
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("⬅ 上一台"):
+        st.session_state.index = (st.session_state.index - 1) % len(stations)
+        st.experimental_rerun()
+with col2:
+    if st.button("下一台 ➡"):
+        st.session_state.index = (st.session_state.index + 1) % len(stations)
