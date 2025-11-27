@@ -38,7 +38,7 @@
             margin: 20px 0;
         }
         .note {
-            color: #d9534f;
+            color: #28a745; /* 綠色表示成功或已載入 */
             font-weight: bold;
             margin-top: 15px;
         }
@@ -48,67 +48,54 @@
 <body>
 
 <div class="container">
-    <h1>📻 臺北廣播電臺 FM 93.1 (新串流)</h1>
-    <p>使用 HLS 格式播放，提高背景播放的穩定性。</p>
+    <h1>📻 臺北廣播電臺 FM 93.1</h1>
+    <p>點擊播放後，聲音將在背景持續播放。</p>
 
     <audio id="radioPlayer" controls preload="none"></audio>
     
-    <p class="note" id="statusMessage">載入中...</p>
+    <p class="note" id="statusMessage">載入廣播串流中...</p>
     
 </div>
 
 <script>
-    const radioUrl = 'https://tradio.gov.taipei/live/tradio.m3u8';
+    // 使用您提供的正確 M3U8 串流連結
+    const radioUrl = 'https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8';
     const audio = document.getElementById('radioPlayer');
     const statusMessage = document.getElementById('statusMessage');
 
     // 檢查瀏覽器是否支援 HLS.js
     if (Hls.isSupported()) {
-        statusMessage.textContent = '嘗試載入 HLS 串流...';
-        
         const hls = new Hls();
-        // 綁定 HLS.js 到 audio 元素
-        hls.attachMedia(audio);
         
-        // 載入 M3U8 串流網址
+        // 綁定 HLS.js 到 audio 元素並載入串流
+        hls.attachMedia(audio);
         hls.loadSource(radioUrl);
         
         hls.on(Hls.Events.MANIFEST_PARSED, function () {
-            // Manifest 載入成功，提示使用者點擊播放
-            statusMessage.textContent = '已載入，請點擊播放按鈕。';
+            // Manifest 載入成功
+            statusMessage.textContent = '✅ 廣播已載入，請點擊播放按鈕。';
         });
 
+        // 處理 HLS 錯誤，如果 HLS 失敗，嘗試使用原生播放器
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
-                switch(data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                        console.error("HLS Network Error:", data.details);
-                        statusMessage.textContent = '錯誤：網路載入失敗，串流網址可能失效。';
-                        break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                        console.error("HLS Media Error:", data.details);
-                        statusMessage.textContent = '錯誤：媒體解碼失敗。';
-                        break;
-                    default:
-                        console.error("HLS Fatal Error:", data);
-                        statusMessage.textContent = '發生嚴重錯誤，無法播放。';
-                        break;
-                }
-                // 嘗試使用原生播放
+                console.error("HLS 嚴重錯誤：", data);
+                statusMessage.textContent = '⚠️ 串流載入失敗，嘗試使用瀏覽器原生播放。';
+                // 嘗試讓原生播放器接手
                 audio.src = radioUrl;
                 audio.addEventListener('error', () => {
-                     statusMessage.textContent = '無法播放。請檢查串流網址或網路連線。';
+                     statusMessage.textContent = '❌ 無法播放，串流網址可能已失效。';
                 });
             }
         });
 
     } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
         // 如果是 iOS 或 Safari 瀏覽器，它們原生支援 M3U8
-        statusMessage.textContent = '使用原生 M3U8 播放器載入...';
+        statusMessage.textContent = '✅ 已載入，請點擊播放按鈕。 (使用原生 M3U8 播放)';
         audio.src = radioUrl;
     } else {
         // 瀏覽器不支援
-        statusMessage.textContent = '您的瀏覽器不支援此串流格式。';
+        statusMessage.textContent = '❌ 您的瀏覽器不支援此串流格式。';
     }
 </script>
 
