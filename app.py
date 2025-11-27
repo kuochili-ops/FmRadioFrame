@@ -2,44 +2,55 @@ import streamlit as st
 import datetime
 import requests
 from PIL import Image
-from streamlit_autorefresh import st_autorefresh
+import base64
+from io import BytesIO
 
 # 初始化狀態
-if "photo_index" not in st.session_state:
-    st.session_state.photo_index = 0
 if "current_station" not in st.session_state:
     st.session_state.current_station = 0
-if "slideshow" not in st.session_state:
-    st.session_state.slideshow = False
-
-# 自動刷新（每 30 秒）
-st_autorefresh(interval=30 * 1000, key="refresh")
 
 # ---------------- 上半部：相框 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
 
+photo_urls = []
 if uploaded_files:
     photos = uploaded_files[:5]
-    st.session_state.slideshow = st.checkbox("▶️ 啟動輪播")
+    for file in photos:
+        img = Image.open(file)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        byte_im = buf.getvalue()
+        b64 = base64.b64encode(byte_im).decode()
+        photo_urls.append(f"data:image/png;base64,{b64}")
 
-    current_photo = photos[st.session_state.photo_index]
-    img = Image.open(current_photo)
+    # 輪播選項
+    slideshow = st.checkbox("▶️ 啟動輪播")
+    speed = st.selectbox("⏱️ 輪播速度", ["5 秒", "10 秒", "30 秒"], index=1)
+    interval = {"5 秒":5000, "10 秒":10000, "30 秒":30000}[speed]
 
-    # 判斷橫式或直式
-    if img.width >= img.height:
-        st.image(img, use_column_width=True)
-    else:
-        st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-        st.image(img, width=400)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # 顯示第一張照片 + JS 輪播
+    if photo_urls:
+        st.markdown(f"""
+        <div style="text-align:center;">
+          <img id="slideshow" src="{photo_urls[0]}" width="600">
+        </div>
+        <script>
+        var images = {photo_urls};
+        var index = 0;
+        var enable = {"true" if slideshow else "false"};
+        if(enable){{
+            setInterval(function(){{
+                index = (index + 1) % images.length;
+                document.getElementById("slideshow").src = images[index];
+            }}, {interval});
+        }}
+        </script>
+        """, unsafe_allow_html=True)
 
-    # 自動輪播
-    if st.session_state.slideshow:
-        st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
 else:
     st.info("請上傳相片（最多五張）")
 
-# ---------------- 下半部：收音機與資訊 ----------------
+# ---------------- 下半部：收音機 ----------------
 stations = [
     {"name": "ICRT", "url": "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
     {"name": "台北電台", "url": "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
@@ -52,7 +63,7 @@ stations = [
 station = stations[st.session_state.current_station]
 st.markdown(f"### 🎶 正在播放：{station['name']}")
 st.markdown(f"""
-<audio controls autoplay key="{station['url']}">
+<audio controls autoplay>
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
@@ -63,7 +74,7 @@ if col3.button("⬅️ 上一台"):
 if col4.button("➡️ 下一台"):
     st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
 
-# ---------------- 下半部資訊 ----------------
+# ---------------- 下半部：時間、日期、天氣 ----------------
 now = datetime.datetime.now()
 st.markdown(f"🕒 時間：{now.strftime('%H:%M:%S')}")
 st.markdown(f"📅 日期：{now.strftime('%Y-%m-%d')}")
