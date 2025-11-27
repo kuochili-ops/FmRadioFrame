@@ -7,21 +7,42 @@
 <body>
   <h1>📻 線上收音機</h1>
 
-  <p>ICRT</p>
-  <audio controls>
-    <source src="https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw" type="audio/mpeg">
-  </audio>
+  <audio id="player" controls autoplay></audio>
+  <p id="stationName"></p>
 
-  <p>台北電台</p>
-  <audio controls>
-    <source src="https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8" type="application/x-mpegURL">
-  </audio>
+  <button onclick="prevStation()">⬅️ 上一台</button>
+  <button onclick="nextStation()">➡️ 下一台</button>
 
-  <p>中廣流行網</p>
-  <audio controls>
-    <source src="https://stream.rcs.revma.com/aw9uqyxy2tzuv" type="audio/mpeg">
-  </audio>
+  <script>
+    const stations = [
+      {name: "ICRT", url: "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
+      {name: "台北電台", url: "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
+      {name: "中廣流行網", url: "https://stream.rcs.revma.com/aw9uqyxy2tzuv"},
+      {name: "好事989", url: "https://n13.rcs.revma.com/fkdywbc59duvv?rj-ttl=5&rj-tok=AAABmsUmzjEAUA_XnW2QqGYA1w"},
+      {name: "港都983", url: "https://n12.rcs.revma.com/q2m07dc59duvv?rj-ttl=5&rj-tok=AAABmsVEH6gAzFkrUTImPEJ_7w"},
+      {name: "中廣音樂網", url: "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"}
+    ];
 
-  <!-- 其他電台依序加上 -->
+    let current = 0;
+    const player = document.getElementById("player");
+    const stationName = document.getElementById("stationName");
+
+    function loadStation(index) {
+      current = (index + stations.length) % stations.length;
+      player.src = stations[current].url;
+      stationName.textContent = "正在播放：" + stations[current].name;
+    }
+
+    function prevStation() {
+      loadStation(current - 1);
+    }
+
+    function nextStation() {
+      loadStation(current + 1);
+    }
+
+    // 初始載入
+    loadStation(current);
+  </script>
 </body>
 </html>
