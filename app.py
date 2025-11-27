@@ -9,24 +9,28 @@ stations = [
     {"name": "中廣音樂網", "url": "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"}
 ]
 
-# 初始化 session_state
 if "current" not in st.session_state:
     st.session_state.current = 0
 
 st.title("📻 台灣電台播放器")
 
-# 顯示目前電台
 station = stations[st.session_state.current]
 st.markdown(f"### 正在播放：{station['name']}")
-st.markdown(f"""
+
+# 用 st.empty() 來確保播放器刷新
+player = st.empty()
+player.markdown(f"""
 <audio controls autoplay>
   <source src="{station['url']}" type="audio/mpeg">
 </audio>
 """, unsafe_allow_html=True)
 
-# 上一台 / 下一台 按鈕
 col1, col2 = st.columns(2)
 if col1.button("⬅️ 上一台"):
     st.session_state.current = (st.session_state.current - 1) % len(stations)
+    st.experimental_set_query_params(refresh="true")  # 強制刷新
+    st.rerun()
 if col2.button("➡️ 下一台"):
     st.session_state.current = (st.session_state.current + 1) % len(stations)
+    st.experimental_set_query_params(refresh="true")
+    st.rerun()
