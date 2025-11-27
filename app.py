@@ -17,7 +17,7 @@ if "slideshow" not in st.session_state:
 if st.session_state.slideshow:
     st_autorefresh(interval=5000, key="slideshow_refresh")
 
-# ---------------- 上半部：相框 ----------------
+# ---------------- 相框區 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
 
 if uploaded_files:
@@ -65,7 +65,7 @@ if uploaded_files:
 else:
     st.info("請上傳相片（最多五張）")
 
-# ---------------- 收音機 ----------------
+# ---------------- 收音機區 ----------------
 stations = [
     {"name": "ICRT", "url": "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
     {"name": "台北電台", "url": "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
@@ -103,27 +103,27 @@ col_left, col_right = st.columns([1,1])
 with col_left:
     st.markdown("""
     <style>
-    div[data-testid="stButton"] button {
-        background-color: #1E90FF; /* 藍色 */
+    div[data-testid="channel_switch"] button {
+        background-color: #1E90FF;
         color: white;
         font-weight: bold;
         width: 100%;
     }
     </style>
     """, unsafe_allow_html=True)
-    if st.button("📻 頻道切換"):
+    if st.button("📻 頻道切換", key="channel_switch"):
         st.session_state.current_station = (st.session_state.current_station + 1) % len(stations)
 
 with col_right:
     st.markdown("""
     <style>
-    div[data-testid="stButton"] button {
-        background-color: #32CD32; /* 綠色 */
+    div[data-testid="photo_toggle"] button {
+        background-color: #32CD32;
         color: white;
         font-weight: bold;
         width: 100%;
     }
     </style>
     """, unsafe_allow_html=True)
-    if st.button("🖼️ 照片輪播"):
+    if st.button("🖼️ 照片輪播", key="photo_toggle"):
         st.session_state.slideshow = not st.session_state.slideshow
