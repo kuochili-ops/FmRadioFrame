@@ -1,47 +1,29 @@
 import streamlit as st
-import datetime
-import requests
-import pytz
-from PIL import Image
-from streamlit_autorefresh import st_autorefresh
+import base64
 
-# ---------------- 初始化狀態 ----------------
-if "photo_index" not in st.session_state:
-    st.session_state.photo_index = 0
-if "slideshow" not in st.session_state:
-    st.session_state.slideshow = False
-if "current_station" not in st.session_state:
-    st.session_state.current_station = 0
-
-# ---------------- 相框區 ----------------
+# ---------------- 上傳照片 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
 
 if uploaded_files:
-    photos = uploaded_files[:5]
+    # 把圖片轉成 base64，前端 JS 輪播用
+    img_list = []
+    for file in uploaded_files[:5]:
+        b64 = base64.b64encode(file.read()).decode()
+        img_list.append(f"data:image/png;base64,{b64}")
 
-    # 自動刷新（照片輪播）
-    if st.session_state.slideshow:
-        st_autorefresh(interval=5000, key="slideshow_refresh")
-        st.session_state.photo_index = (st.session_state.photo_index + 1) % len(photos)
-
-    # 顯示目前照片
-    current_photo = photos[st.session_state.photo_index]
-    img = Image.open(current_photo)
-    st.image(img, use_column_width=True)
-
-    # 疊層資訊（右下角）
-    tz = pytz.timezone("Asia/Taipei")
-    now = datetime.datetime.now(tz)
-
+    # JS 輪播
     st.markdown(f"""
-    <div style="position:relative; text-align:center;">
-      <div style="position:absolute; bottom:20px; right:20px; 
-                  background:rgba(0,0,0,0.5); color:white; 
-                  padding:10px; border-radius:8px; font-size:16px;">
-        🕒 {now.strftime('%H:%M:%S')}<br>
-        📅 {now.strftime('%Y-%m-%d')}
-      </div>
+    <div style="text-align:center;">
+      <img id="slideshow" src="{img_list[0]}" width="500">
     </div>
+    <script>
+    var images = {img_list};
+    var index = 0;
+    setInterval(function(){{
+        index = (index + 1) % images.length;
+        document.getElementById("slideshow").src = images[index];
+    }}, 5000); // 每 5 秒切換
+    </script>
     """, unsafe_allow_html=True)
 
 else:
@@ -54,20 +36,22 @@ stations = [
     {"name": "中廣流行網", "url": "https://stream.rcs.revma.com/aw9uqyxy2tzuv"},
 ]
 
+if "current_station" not in st.session_state:
+    st.session_state.current_station = 0
+
 station = stations[st.session_state.current_station]
 
-# 頻道名稱
 st.markdown(f"""
 <div style="text-align:center; margin-top:10px;">
   <span style="background:rgba(0,0,0,0.5); color:white; padding:6px 12px; border-radius:6px; font-size:16px; font-weight:bold;">
     🎶 {station['name']}
   </span>
 </div>
-""", unsafe_allow_html=True)
-
-# 用 iframe 固定播放，不受 rerun 影響
-st.markdown(f"""
-<iframe src="{station['url']}" width="300" height="80" allow="autoplay" style="border:none;"></iframe>
+<div style="text-align:center; margin-top:10px;">
+<audio controls autoplay>
+  <source src="{station['url']}" type="audio/mpeg">
+</audio>
+</div>
 """, unsafe_allow_html=True)
 
 # ---------------- 控制列 ----------------
@@ -80,5 +64,4 @@ with col1:
 
 with col2:
     if st.button("🖼️ 照片輪播"):
-        st.session_state.slideshow = not st.session_state.slideshow
-    st.caption("狀態：" + ("輪播中" if st.session_state.slideshow else "已停止"))
+        st.info("照片輪播已啟動（前端 JS 控制，不會斷音）")
