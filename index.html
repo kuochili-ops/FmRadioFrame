@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>智慧相框收音機</title>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+https://cdn.jsdelivr.net/npm/hls.js@latest</script>
 <style>
     body {
         font-family: "Segoe UI", "Helvetica Neue", sans-serif;
@@ -33,37 +33,6 @@
         object-fit: cover;
         display: block;
     }
-    .weather-badge {
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-        background: rgba(0, 0, 0, 0.6);
-        color: #fff;
-        padding: 8px 15px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-    }
-    .news-ticker-container {
-        max-width: 650px;
-        margin: 10px auto;
-        background-color: #585d68;
-        color: #fff;
-        padding: 5px 0;
-        overflow: hidden;
-        white-space: nowrap;
-        border-radius: 4px;
-    }
-    .news-ticker-content {
-        display: inline-block;
-        padding-left: 100%;
-        font-weight: 500;
-        font-size: 0.9em;
-        animation: marquee 150s linear infinite;
-    }
-    @keyframes marquee {
-        0% { transform: translateX(0%); }
-        100% { transform: translateX(-100%); }
-    }
     .controls {
         max-width: 650px;
         margin: auto;
@@ -89,20 +58,11 @@
 <h1>📻 智慧相框收音機</h1>
 
 <div class="frame-container" id="frameBox">
-    <img id="slideImg" class="frame-img" src="https://picsum.photos/800/450?random=1">
-    <div class="weather-badge">
-        <div id="wd-city">Taipei</div>
-        <div id="wd-temp">--°C</div>
-        <div id="wd-desc">Loading...</div>
-    </div>
-</div>
-
-<div class="news-ticker-container">
-    <div class="news-ticker-content" id="newsTickerContent">新聞載入中...</div>
+    <img id="slideImg" class="frame-img" src="assets/photo1.jpg">
 </div>
 
 <div class="controls">
-    <span id="stationLabel">ICRT FM100</span>
+    <span id="stationLabel">ICRT</span>
     <audio id="audioPlayer" controls></audio>
     <div>
         <button onclick="prevStation()">⏮️ 上一頻道</button>
@@ -113,17 +73,28 @@
 <script>
 // ✅ 電台串流清單
 const stations = [
-    { name: "ICRT FM100", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv" },
+    { name: "ICRT", url: "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw" },
     { name: "台北電台", url: "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8" },
-    { name: "中廣流行網", url: "https://stream.rcs.revma.com/aw9uqyxy2tzuv" }
+    { name: "中廣流行網", url: "https://stream.rcs.revma.com/aw9uqyxy2tzuv" },
+    { name: "好事989", url: "https://n13.rcs.revma.com/fkdywbc59duvv?rj-ttl=5&rj-tok=AAABmsUmzjEAUA_XnW2QqGYA1w" },
+    { name: "港都983", url: "https://n12.rcs.revma.com/q2m07dc59duvv?rj-ttl=5&rj-tok=AAABmsVEH6gAzFkrUTImPEJ_7w" },
+    { name: "中廣音樂網", url: "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw" }
 ];
 
+// ✅ 本地圖片輪播
+const images = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"];
+let currentImgIdx = 0;
+setInterval(() => {
+    currentImgIdx = (currentImgIdx + 1) % images.length;
+    document.getElementById("slideImg").src = images[currentImgIdx];
+}, 5000);
+
+// ✅ 播放電台
 let currentStationIdx = 0;
 let hls = null;
 const audioPlayer = document.getElementById("audioPlayer");
 const stationLabel = document.getElementById("stationLabel");
 
-// ✅ 播放電台
 function playStation(index) {
     const station = stations[index];
     stationLabel.innerText = station.name;
@@ -148,41 +119,6 @@ function prevStation() {
     currentStationIdx = (currentStationIdx - 1 + stations.length) % stations.length;
     playStation(currentStationIdx);
 }
-
-// ✅ 輪播圖片
-setInterval(() => {
-    document.getElementById("slideImg").src = `https://picsum.photos/800/450?random=${Math.floor(Math.random()*100)}`;
-}, 5000);
-
-// ✅ 即時新聞 RSS
-async function fetchNews() {
-    const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://news.ltn.com.tw/rss/all.xml'));
-    const text = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, "text/xml");
-    const items = xmlDoc.querySelectorAll('item');
-    let headlines = [];
-    items.forEach(item => {
-        const title = item.querySelector('title')?.textContent;
-        if (title && title.length > 5) headlines.push(title);
-    });
-    document.getElementById("newsTickerContent").innerText = headlines.join(" ⭐ ");
-}
-fetchNews();
-setInterval(fetchNews, 600000);
-
-// ✅ 天氣 API
-async function fetchWeather() {
-    const apiKey = "dacfd5f7b7e6c05162ac1340b88b6cc0"; // 替換成你的 API Key
-    const city = "Taipei";
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_tw`;
-    const response = await fetch(url);
-    const data = await response.json();
-    document.getElementById("wd-city").innerText = data.name;
-    document.getElementById("wd-temp").innerText = Math.round(data.main.temp) + "°C";
-    document.getElementById("wd-desc").innerText = data.weather[0].description;
-}
-fetchWeather();
 
 // 啟動第一個電台
 playStation(0);
