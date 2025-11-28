@@ -137,7 +137,7 @@ html_code = f"""
         .weather-badge {{ bottom: 5px; right: 5px; padding: 4px 8px; font-size: 0.7rem; }}
         
         /* >>> 跑馬燈速度修正：從 90s 增加到 120s <<< */
-        .news-ticker-content {{ animation: marquee 120s linear infinite; }}
+        .news-ticker-content {{ animation: marquee 130s linear infinite; }}
     }}
     
     /* --- 其他樣式略... --- */
