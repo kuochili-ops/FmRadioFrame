@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>白六智慧相框收音機</title>
-https://cdn.jsdelivr.net/npm/hls.js@latest</script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
     body { font-family: "Segoe UI", sans-serif; background-color: #0e1117; color: white; text-align: center; margin: 0; padding: 10px; }
     .frame-container { width: 100%; max-width: 650px; margin: 0 auto; border: 4px solid #333; border-radius: 12px; background: #000; overflow: hidden; aspect-ratio: 16/9; position: relative; }
@@ -26,7 +26,7 @@ https://cdn.jsdelivr.net/npm/hls.js@latest</script>
 
 <!-- 相框顯示區 -->
 <div class="frame-container" id="frameBox">
-    assets/photo1.jpg
+    <img id="slideImg" class="frame-img" src="assets/photo1.jpg">
     <div class="weather-badge">
         <div id="wd-city">Taipei</div>
         <div id="wd-temp">--°C</div>
@@ -95,10 +95,15 @@ document.getElementById("photoInput").addEventListener("change", function(event)
     const files = event.target.files;
     if (files.length > 0) {
         images = [];
+        let loadedCount = 0;
         for (let file of files) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 images.push(e.target.result);
+                loadedCount++;
+                if (loadedCount === 1) {
+                    document.getElementById("slideImg").src = images[0]; // 立即顯示第一張
+                }
             };
             reader.readAsDataURL(file);
         }
