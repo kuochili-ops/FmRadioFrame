@@ -31,7 +31,7 @@ def get_base64_image(path):
         return None
 
 # 定義預設圖片路徑 (請確保檔案存在 /assets/)
-default_image_paths = ["assets/default1.jpg", "assets/default2.jpg"] # 請依你的實際檔名調整！
+default_image_paths = ["assets/photo1.jpg", "assets/photo2.jpg"] # 請依你的實際檔名調整！
 
 # 電台清單 (保持不變)
 stations = [
