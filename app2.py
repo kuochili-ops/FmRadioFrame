@@ -7,8 +7,8 @@ import os
 # 設定頁面
 st.set_page_config(page_title="Radio & Weather Frame", layout="centered")
 
-st.title("📻 智慧相框收音機 (修正新聞來源)")
-st.caption("新聞跑馬燈內容將每 10 分鐘自動更新。")
+st.title("📻 智慧相框收音機 (修正新聞來源與速度)")
+st.caption("新聞跑馬燈已變慢，並修正為更可靠的即時新聞來源。")
 
 # ---------------- 1. Python 資料準備區 ----------------
 
@@ -65,7 +65,7 @@ js_stations = json.dumps(stations)
 js_images = json.dumps(img_list)
 api_key = "dacfd5f7b7e6c05162ac1340b88b6cc0" 
 
-# ---------------- 2. HTML/JS 前端核心 (修正新聞來源與代理) ----------------
+# ---------------- 2. HTML/JS 前端核心 ----------------
 
 html_code = f"""
 <!DOCTYPE html>
@@ -117,7 +117,8 @@ html_code = f"""
         padding-left: 100%; 
         font-weight: 500;
         font-size: 0.9em;
-        animation: marquee 60s linear infinite; 
+        /* >>> 跑馬燈速度修正：從 60s 增加到 90s <<< */
+        animation: marquee 90s linear infinite; 
     }}
 
     /* 定義滾動動畫 */
@@ -126,7 +127,7 @@ html_code = f"""
         100% {{ transform: translateX(-100%); }}
     }}
 
-    /* --- 行動裝置優化 (維持不變) --- */
+    /* --- 行動裝置優化 --- */
     @media (max-width: 700px) {{
         .controls {{ grid-template-columns: 1fr; gap: 10px; }}
         .card {{ padding: 10px; }}
@@ -134,7 +135,9 @@ html_code = f"""
         .input-group {{ flex-direction: column; gap: 5px; }}
         audio {{ height: 30px; }}
         .weather-badge {{ bottom: 5px; right: 5px; padding: 4px 8px; font-size: 0.7rem; }}
-        .news-ticker-content {{ animation: marquee 90s linear infinite; }}
+        
+        /* >>> 跑馬燈速度修正：從 90s 增加到 120s <<< */
+        .news-ticker-content {{ animation: marquee 120s linear infinite; }}
     }}
     
     /* --- 其他樣式略... --- */
@@ -206,8 +209,8 @@ html_code = f"""
 
     <script>
         // --- 設定新聞來源 (已更新為 Liberty Times) ---
-        const NEWS_RSS_URL = 'https://news.ltn.com.tw/rss/all.xml'; // 自由時報即時新聞
-        const CORS_PROXY = 'https://corsproxy.io/?'; // 備用公共 CORS 代理服務 (更換)
+        const NEWS_RSS_URL = 'https://news.ltn.com.tw/rss/all.xml'; // 自由時報即時新聞 (維持不變)
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url='; // CORS 代理服務 (更換回穩定服務)
 
         // JS 變數 (維持不變)
         const stations = {js_stations};
@@ -234,12 +237,13 @@ html_code = f"""
         const wdTime = document.getElementById("wd-time");
         const cityInput = document.getElementById("cityInput");
         
-        // --- 1. 即時新聞抓取與更新 (修正解析邏輯) ---
+        // --- 1. 即時新聞抓取與更新 (修正代理與解析) ---
         async function fetchLiveNews() {{
-            newsTickerContent.innerText = "新聞載入中...";
+            const newsTickerElement = document.getElementById("newsTickerContent");
+            newsTickerElement.innerText = "新聞載入中..."; // 確保使用正確的 DOM 元素
 
             try {{
-                // 使用新的 CORS 代理服務，確保網址正確編碼
+                // 使用更可靠的 CORS 代理服務
                 const response = await fetch(CORS_PROXY + encodeURIComponent(NEWS_RSS_URL));
                 if (!response.ok) throw new Error(`Network response was not ok: ${{response.status}}`);
                 
@@ -255,7 +259,7 @@ html_code = f"""
                     const titleElement = item.querySelector('title');
                     if (titleElement && titleElement.textContent) {{
                         const title = titleElement.textContent.trim();
-                        // 排除標準的 RSS Feed 標題
+                        // 排除標準的 RSS Feed 標題，避免標題重複
                         if (title.length > 5 && !title.includes("自由時報") && !title.includes("即時熱門新聞")) {{ 
                             headlines.push(title);
                         }}
@@ -263,7 +267,7 @@ html_code = f"""
                 }});
 
                 if (headlines.length === 0) {{
-                     newsTickerContent.innerText = "⭐ 即時新聞 ⭐ 資料為空，請檢查來源。";
+                     newsTickerElement.innerText = "⭐ 即時新聞 ⭐ 資料為空或解析失敗，將在 10 分鐘後重試。";
                      return;
                 }}
 
@@ -272,17 +276,18 @@ html_code = f"""
                 const newContent = separator + headlines.join(separator) + separator + separator + separator;
 
                 // 為了確保 CSS 動畫能順利重啟，替換舊元素
-                const container = newsTickerContent.parentElement;
-                const newTicker = newsTickerContent.cloneNode(false); // 僅複製元素，不複製內容
+                const container = newsTickerElement.parentElement;
+                const oldTicker = document.getElementById("newsTickerContent");
+                const newTicker = oldTicker.cloneNode(false); // 僅複製元素，不複製內容
                 newTicker.innerText = newContent;
                 
                 // 移除舊元素，新增新元素
-                newsTickerContent.remove();
+                oldTicker.remove();
                 container.appendChild(newTicker);
                 
             }} catch (error) {{
                 console.error("新聞載入失敗:", error);
-                newsTickerContent.innerText = `⭐ 即時新聞 ⭐ 載入失敗: ${{error.message}}`;
+                newsTickerElement.innerText = `⭐ 即時新聞 ⭐ 載入失敗 (錯誤: ${{error.message}})，將在 10 分鐘後重試。`;
             }}
         }}
 
