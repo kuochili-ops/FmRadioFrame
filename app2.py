@@ -7,25 +7,8 @@ import os
 # 設定頁面
 st.set_page_config(page_title="Radio & Weather Frame", layout="centered")
 
-st.title("📻 智慧相框收音機 (新增即時新聞跑馬燈)")
-st.caption("新聞跑馬燈位於相框下方，不會中斷音樂播放或頁面重載。")
-
-# --- 準備新聞內容 ---
-# 這是從 Google Search 取得的即時新聞頭條，將作為跑馬燈內容。
-news_snippets = [
-    "傅崐萁提修法陸配參政免放棄國籍立院付委審查",
-    "總統任命徐斯儉為國防部副部長借重國際戰略長才",
-    "新台幣午盤貶1.2分暫收31.352元",
-    "財政部：慎防普發一萬釣魚詐騙停止解析11個假網站",
-    "黃仁勳談與Google競爭指輝達地位穩固證實已會張忠謀",
-    "雲縣推動電動車產業園區設置案已送內政部審議",
-    "香港大火死傷慘高樓逃生必知要訣：別找濕毛巾躲浴室",
-    "秋季均溫26.5度1951年來最暖氣象署估冬季偏暖雨量略少",
-    "傳川普籲高市「別挑釁北京」 日政府否認",
-    "禽流感變異成「人傳人」？ 專家示警：比新冠疫情更致命"
-]
-# 使用 ⭐⭐⭐ 分隔標題
-news_ticker_content = " ⭐ 即時新聞 ⭐ ⭐ ⭐ " + " ⭐ ⭐ ⭐ ".join(news_snippets) + " ⭐ ⭐ ⭐ "
+st.title("📻 智慧相框收音機 (即時新聞自動更新)")
+st.caption("新聞跑馬燈內容將每 10 分鐘自動更新，無需手動重新整理頁面。")
 
 # ---------------- 1. Python 資料準備區 ----------------
 
@@ -44,7 +27,7 @@ def get_base64_image(path):
         return None
 
 # 定義預設圖片路徑 (請確保檔案存在 /assets/)
-default_image_paths = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"] 
+default_image_paths = ["assets/default1.jpg", "assets/default2.jpg"] 
 
 # 電台清單
 stations = [
@@ -82,7 +65,7 @@ js_stations = json.dumps(stations)
 js_images = json.dumps(img_list)
 api_key = "dacfd5f7b7e6c05162ac1340b88b6cc0" 
 
-# ---------------- 2. HTML/JS 前端核心 ----------------
+# ---------------- 2. HTML/JS 前端核心 (實現即時新聞) ----------------
 
 html_code = f"""
 <!DOCTYPE html>
@@ -102,12 +85,11 @@ html_code = f"""
         padding: 10px;
         box-sizing: border-box;
     }}
-
     /* --- 相框容器 --- */
     .frame-container {{
         width: 100%;
         max-width: 650px;
-        margin: 0 auto 10px auto; /* 留一點空間給跑馬燈 */
+        margin: 0 auto 10px auto; 
         border: 4px solid #333;
         border-radius: 12px;
         background: #000;
@@ -121,21 +103,21 @@ html_code = f"""
     .news-ticker-container {{
         max-width: 650px;
         margin: 0 auto 15px auto;
-        background-color: #585d68; /* 跑馬燈底色 */
+        background-color: #585d68; 
         color: #fff;
         padding: 5px 0;
-        overflow: hidden; /* 隱藏溢出內容 */
-        white-space: nowrap; /* 不換行 */
+        overflow: hidden; 
+        white-space: nowrap; 
         border-radius: 4px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }}
 
     .news-ticker-content {{
         display: inline-block;
-        padding-left: 100%; /* 從右側完全移入 */
+        padding-left: 100%; 
         font-weight: 500;
         font-size: 0.9em;
-        animation: marquee 60s linear infinite; /* 60s 速度，無限循環 */
+        animation: marquee 60s linear infinite; 
     }}
 
     /* 定義滾動動畫 */
@@ -144,68 +126,26 @@ html_code = f"""
         100% {{ transform: translateX(-100%); }}
     }}
 
-    /* --- 右下角天氣浮水印 --- */
-    .weather-badge {{
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        color: #fff;
-        padding: 8px 15px;
-        border-radius: 8px;
-        z-index: 10;
-        font-size: 0.9rem;
-    }}
-
-    /* --- 控制面板 --- */
-    .controls {{
-        display: grid;
-        grid-template-columns: 1fr 1fr; 
-        gap: 15px;
-        max-width: 650px;
-        margin: auto;
-    }}
-    
-    .card {{ background: #262730; padding: 15px; border-radius: 8px; border: 1px solid #363940; }}
-    .card-title {{ font-size: 0.9rem; color: #bbb; margin-bottom: 8px; font-weight: bold;}}
-    .station-name {{ color: #fab005; font-weight: bold; margin-bottom: 5px; display: block; }}
-    
-    /* === 行動裝置 (Mobile) 優化：資訊在下沿一排 (堆疊) === */
+    /* --- 行動裝置優化 (維持不變) --- */
     @media (max-width: 700px) {{
-        .frame-container {{ margin-bottom: 10px; }}
         .controls {{ grid-template-columns: 1fr; gap: 10px; }}
         .card {{ padding: 10px; }}
         .card-title {{ display: none; }}
         .input-group {{ flex-direction: column; gap: 5px; }}
         audio {{ height: 30px; }}
-        
-        /* 縮小並移動天氣浮水印 */
-        .weather-badge {{
-             bottom: 5px;
-             right: 5px;
-             padding: 4px 8px;
-             font-size: 0.7rem;
-        }}
-        .weather-temp {{ font-size: 1.2rem; }}
-        .weather-desc {{ font-size: 0.7rem; }}
-        .time-display {{ font-size: 0.7rem; }}
-
-        /* 手機上讓跑馬燈慢一點 */
-        @keyframes marquee {{
-            0% {{ transform: translateX(0%); }}
-            100% {{ transform: translateX(-100%); }}
-        }}
-        .news-ticker-content {{ animation: marquee 90s linear infinite; }} /* 變慢 */
+        .weather-badge {{ bottom: 5px; right: 5px; padding: 4px 8px; font-size: 0.7rem; }}
+        .news-ticker-content {{ animation: marquee 90s linear infinite; }}
     }}
-
-    /* --- 其他樣式維持不變 --- */
-    .frame-img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+    
+    /* --- 其他樣式略... --- */
+    .weather-badge {{ position: absolute; bottom: 15px; right: 15px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); color: #fff; padding: 8px 15px; border-radius: 8px; z-index: 10; font-size: 0.9rem; }}
     .weather-row {{ display: flex; align-items: center; justify-content: flex-end; gap: 5px; }}
     .weather-temp {{ font-size: 1.4rem; font-weight: bold; color: #fab005; }}
     .weather-city {{ font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }}
     .weather-desc {{ font-size: 0.8rem; color: #ddd; }}
     .time-display {{ margin-top: 4px; font-size: 0.8rem; color: #ccc; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; }}
+    .frame-img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+    .controls {{ max-width: 650px; margin: auto; }}
     button {{ background-color: #ff4b4b; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%; margin-top: 5px; transition: 0.2s; }}
     button.btn-blue {{ background-color: #1E90FF; }}
     button.btn-green {{ background-color: #32CD32; }}
@@ -233,7 +173,7 @@ html_code = f"""
     </div>
 
     <div class="news-ticker-container">
-        <div class="news-ticker-content" id="newsTickerContent">{news_ticker_content}</div>
+        <div class="news-ticker-content" id="newsTickerContent">新聞載入中...</div>
     </div>
 
     <div class="controls">
@@ -265,7 +205,11 @@ html_code = f"""
     </div>
 
     <script>
-        // JS 邏輯 (維持不變)
+        // --- 設定新聞來源 ---
+        const NEWS_RSS_URL = 'https://www.cna.com.tw/rss/cna-main.xml'; // 中央通訊社即時新聞
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url='; // 公共 CORS 代理服務
+
+        // JS 變數 (維持不變)
         const stations = {js_stations};
         const images = {js_images};
         const apiKey = "{api_key}";
@@ -281,6 +225,7 @@ html_code = f"""
         const stationLabel = document.getElementById("stationLabel");
         const slideImg = document.getElementById("slideImg");
         const frameBox = document.getElementById("frameBox");
+        const newsTickerContent = document.getElementById("newsTickerContent");
         
         const wdCity = document.getElementById("wd-city");
         const wdTemp = document.getElementById("wd-temp");
@@ -288,13 +233,64 @@ html_code = f"""
         const wdIcon = document.getElementById("wd-icon");
         const wdTime = document.getElementById("wd-time");
         const cityInput = document.getElementById("cityInput");
+        
+        // --- 1. 即時新聞抓取與更新 ---
+        async function fetchLiveNews() {{
+            newsTickerContent.innerText = "新聞載入中...";
 
-        // --- 1. 音樂播放邏輯 (支援 HLS) ---
+            try {{
+                // 透過 CORS 代理抓取 RSS 內容
+                const response = await fetch(CORS_PROXY + encodeURIComponent(NEWS_RSS_URL));
+                if (!response.ok) throw new Error("Network response was not ok. Proxy or RSS failed.");
+                
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                
+                // 解析並提取 <item> 內的 <title>
+                const items = xmlDoc.querySelectorAll('item');
+                let headlines = [];
+                
+                items.forEach(item => {{
+                    const titleElement = item.querySelector('title');
+                    if (titleElement && titleElement.textContent) {{
+                        // 過濾不必要的或重複的標題
+                        if (titleElement.textContent.trim() !== "中央通訊社 - 即時") {{
+                            headlines.push(titleElement.textContent.trim());
+                        }}
+                    }}
+                }});
+
+                if (headlines.length === 0) {{
+                     newsTickerContent.innerText = "⭐ 即時新聞 ⭐ 資料為空，請檢查來源。";
+                     return;
+                }}
+
+                // 組合並更新跑馬燈內容
+                const separator = " ⭐ ⭐ ⭐ ";
+                const newContent = separator + headlines.join(separator) + separator + separator + separator;
+
+                // 為了確保 CSS 動畫能順利重啟，替換舊元素
+                const container = newsTickerContent.parentElement;
+                const newTicker = newsTickerContent.cloneNode(false); // 僅複製元素，不複製內容
+                newTicker.innerText = newContent;
+                
+                // 移除舊元素，新增新元素
+                newsTickerContent.remove();
+                container.appendChild(newTicker);
+                
+            }} catch (error) {{
+                console.error("新聞載入失敗:", error);
+                newsTickerContent.innerText = "⭐ 即時新聞 ⭐ 載入失敗，請檢查 CORS 或網路連線。";
+            }}
+        }}
+
+
+        // --- 2. 音樂播放邏輯 (HLS 支援) ---
         function playStation(index) {{
             const station = stations[index];
             stationLabel.innerText = station.name;
             const url = station.url;
-
             if (Hls.isSupported() && url.includes('.m3u8')) {{
                 if (hls) {{ hls.destroy(); }}
                 hls = new Hls();
@@ -316,18 +312,10 @@ html_code = f"""
                 audioPlayer.play().catch(e => console.log("Autoplay blocked:", e));
             }}
         }}
+        function nextStation() {{ currentStationIdx = (currentStationIdx + 1) % stations.length; playStation(currentStationIdx); }}
+        function prevStation() {{ currentStationIdx = (currentStationIdx - 1 + stations.length) % stations.length; playStation(currentStationIdx); }}
 
-        function nextStation() {{
-            currentStationIdx = (currentStationIdx + 1) % stations.length;
-            playStation(currentStationIdx);
-        }}
-
-        function prevStation() {{
-            currentStationIdx = (currentStationIdx - 1 + stations.length) % stations.length;
-            playStation(currentStationIdx);
-        }}
-
-        // --- 2. 天氣 API ---
+        // --- 3. 天氣 API ---
         async function fetchWeather() {{
             const city = cityInput.value;
             if(!city) return;
@@ -349,7 +337,7 @@ html_code = f"""
             }}
         }}
 
-        // --- 3. 時間 ---
+        // --- 4. 時間與輪播 (維持不變) ---
         function updateClock() {{
             const now = new window.Date();
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -360,7 +348,6 @@ html_code = f"""
             wdTime.innerText = `${{month}}/${{date}} ${{hours}}:${{minutes}}:${{seconds}}`;
         }}
 
-        // --- 4. 圖片輪播 ---
         setInterval(() => {{
             if (images.length > 0) {{
                 currentImgIdx = (currentImgIdx + 1) % images.length;
@@ -368,7 +355,6 @@ html_code = f"""
             }}
         }}, 5000);
 
-        // --- 5. 外觀 ---
         function toggleRatio() {{
             if (currentRatio === "16/9") currentRatio = "4/3";
             else if (currentRatio === "4/3") currentRatio = "1/1";
@@ -388,6 +374,10 @@ html_code = f"""
         setInterval(updateClock, 1000); 
         updateClock(); 
         playStation(0);
+        
+        // --- 啟動即時新聞更新 (每 10 分鐘) ---
+        fetchLiveNews();
+        setInterval(fetchLiveNews, 600000); // 10 minutes
 
     </script>
 </body>
