@@ -7,8 +7,8 @@ import os
 # 設定頁面
 st.set_page_config(page_title="Radio & Weather Frame", layout="centered")
 
-st.title("📻 智慧相框收音機 (即時新聞自動更新)")
-st.caption("新聞跑馬燈內容將每 10 分鐘自動更新，無需手動重新整理頁面。")
+st.title("📻 智慧相框收音機 (修正新聞來源)")
+st.caption("新聞跑馬燈內容將每 10 分鐘自動更新。")
 
 # ---------------- 1. Python 資料準備區 ----------------
 
@@ -26,10 +26,10 @@ def get_base64_image(path):
     except FileNotFoundError:
         return None
 
-# 定義預設圖片路徑 (請確保檔案存在 /assets/)
+# 定義預設圖片路徑
 default_image_paths = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"] 
 
-# 電台清單
+# 電台清單 (維持不變)
 stations = [
     {"name": "ICRT (英語)", "url": "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
     {"name": "台北電台 (綜合)", "url": "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
@@ -65,7 +65,7 @@ js_stations = json.dumps(stations)
 js_images = json.dumps(img_list)
 api_key = "dacfd5f7b7e6c05162ac1340b88b6cc0" 
 
-# ---------------- 2. HTML/JS 前端核心 (實現即時新聞) ----------------
+# ---------------- 2. HTML/JS 前端核心 (修正新聞來源與代理) ----------------
 
 html_code = f"""
 <!DOCTYPE html>
@@ -205,9 +205,9 @@ html_code = f"""
     </div>
 
     <script>
-        // --- 設定新聞來源 ---
-        const NEWS_RSS_URL = 'https://www.cna.com.tw/rss/cna-main.xml'; // 中央通訊社即時新聞
-        const CORS_PROXY = 'https://api.allorigins.win/raw?url='; // 公共 CORS 代理服務
+        // --- 設定新聞來源 (已更新為 Liberty Times) ---
+        const NEWS_RSS_URL = 'https://news.ltn.com.tw/rss/all.xml'; // 自由時報即時新聞
+        const CORS_PROXY = 'https://corsproxy.io/?'; // 備用公共 CORS 代理服務 (更換)
 
         // JS 變數 (維持不變)
         const stations = {js_stations};
@@ -234,14 +234,14 @@ html_code = f"""
         const wdTime = document.getElementById("wd-time");
         const cityInput = document.getElementById("cityInput");
         
-        // --- 1. 即時新聞抓取與更新 ---
+        // --- 1. 即時新聞抓取與更新 (修正解析邏輯) ---
         async function fetchLiveNews() {{
             newsTickerContent.innerText = "新聞載入中...";
 
             try {{
-                // 透過 CORS 代理抓取 RSS 內容
+                // 使用新的 CORS 代理服務，確保網址正確編碼
                 const response = await fetch(CORS_PROXY + encodeURIComponent(NEWS_RSS_URL));
-                if (!response.ok) throw new Error("Network response was not ok. Proxy or RSS failed.");
+                if (!response.ok) throw new Error(`Network response was not ok: ${{response.status}}`);
                 
                 const xmlText = await response.text();
                 const parser = new DOMParser();
@@ -254,9 +254,10 @@ html_code = f"""
                 items.forEach(item => {{
                     const titleElement = item.querySelector('title');
                     if (titleElement && titleElement.textContent) {{
-                        // 過濾不必要的或重複的標題
-                        if (titleElement.textContent.trim() !== "中央通訊社 - 即時") {{
-                            headlines.push(titleElement.textContent.trim());
+                        const title = titleElement.textContent.trim();
+                        // 排除標準的 RSS Feed 標題
+                        if (title.length > 5 && !title.includes("自由時報") && !title.includes("即時熱門新聞")) {{ 
+                            headlines.push(title);
                         }}
                     }}
                 }});
@@ -281,12 +282,12 @@ html_code = f"""
                 
             }} catch (error) {{
                 console.error("新聞載入失敗:", error);
-                newsTickerContent.innerText = "⭐ 即時新聞 ⭐ 載入失敗，請檢查 CORS 或網路連線。";
+                newsTickerContent.innerText = `⭐ 即時新聞 ⭐ 載入失敗: ${{error.message}}`;
             }}
         }}
 
 
-        // --- 2. 音樂播放邏輯 (HLS 支援) ---
+        // --- 2. 音樂播放邏輯 (HLS 支援, 維持不變) ---
         function playStation(index) {{
             const station = stations[index];
             stationLabel.innerText = station.name;
@@ -315,7 +316,7 @@ html_code = f"""
         function nextStation() {{ currentStationIdx = (currentStationIdx + 1) % stations.length; playStation(currentStationIdx); }}
         function prevStation() {{ currentStationIdx = (currentStationIdx - 1 + stations.length) % stations.length; playStation(currentStationIdx); }}
 
-        // --- 3. 天氣 API ---
+        // --- 3. 天氣 API (維持不變) ---
         async function fetchWeather() {{
             const city = cityInput.value;
             if(!city) return;
