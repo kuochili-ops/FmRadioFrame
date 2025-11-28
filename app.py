@@ -6,6 +6,8 @@ if "current_station" not in st.session_state:
     st.session_state.current_station = 0
 if "frame_ratio" not in st.session_state:
     st.session_state.frame_ratio = "16/9"
+if "fit_mode" not in st.session_state:
+    st.session_state.fit_mode = "cover"
 
 # ---------------- 上傳照片 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
@@ -19,6 +21,10 @@ if uploaded_files:
     # 相框比例選項
     ratio_option = st.selectbox("選擇相框比例", ["16/9", "4/3", "1/1"], index=["16/9","4/3","1/1"].index(st.session_state.frame_ratio))
     st.session_state.frame_ratio = ratio_option
+
+    # 顯示模式選項
+    fit_option = st.radio("顯示模式", ["cover (放大裁切)", "contain (完整顯示)"], index=0)
+    st.session_state.fit_mode = "cover" if "cover" in fit_option else "contain"
 
     # JS 輪播 + 固定相框
     st.markdown(f"""
@@ -37,7 +43,7 @@ if uploaded_files:
     .frame img {{
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: {st.session_state.fit_mode};
     }}
     </style>
 
