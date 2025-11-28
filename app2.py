@@ -118,7 +118,7 @@ html_code = f"""
         font-weight: 500;
         font-size: 0.9em;
         /* >>> 跑馬燈速度修正：從 60s 增加到 90s <<< */
-        animation: marquee 90s linear infinite; 
+        animation: marquee 110s linear infinite; 
     }}
 
     /* 定義滾動動畫 */
