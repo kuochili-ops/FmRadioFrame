@@ -25,7 +25,7 @@ https://cdn.jsdelivr.net/npm/hls.js@latest</script>
 <h1>📻 白六智慧相框收音機</h1>
 
 <!-- 相框顯示區 -->
-<div class="frame-container">
+<div class="frame-container" id="frameBox">
     assets/photo1.jpg
     <div class="weather-badge">
         <div id="wd-city">Taipei</div>
@@ -47,6 +47,11 @@ https://cdn.jsdelivr.net/npm/hls.js@latest</script>
     <div>
         <button onclick="prevStation()">⏮️ 上一頻道</button>
         <button onclick="nextStation()">⏭️ 下一頻道</button>
+    </div>
+    <div>
+        <button onclick="toggleRatio()">📐 切換比例</button>
+        <button onclick="toggleFit()">🔍 切換顯示模式</button>
+        <button onclick="toggleFullscreen()">🖥️ 全螢幕</button>
     </div>
 </div>
 
@@ -131,9 +136,37 @@ function prevStation() {
     playStation(currentStationIdx);
 }
 
+// ✅ 切換比例
+let currentRatio = "16/9";
+function toggleRatio() {
+    const frameBox = document.getElementById("frameBox");
+    if (currentRatio === "16/9") currentRatio = "4/3";
+    else if (currentRatio === "4/3") currentRatio = "1/1";
+    else currentRatio = "16/9";
+    frameBox.style.aspectRatio = currentRatio;
+}
+
+// ✅ 切換顯示模式 Cover/Contain
+let currentFit = "cover";
+function toggleFit() {
+    const img = document.getElementById("slideImg");
+    currentFit = (currentFit === "cover") ? "contain" : "cover";
+    img.style.objectFit = currentFit;
+}
+
+// ✅ 全螢幕模式
+function toggleFullscreen() {
+    const frameBox = document.getElementById("frameBox");
+    if (!document.fullscreenElement) {
+        frameBox.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
 // ✅ 天氣 API
 async function fetchWeather() {
-    const apiKey = "dcd113bba5675965ccf9e60a7e6d06e5"; // 替換成你的 API Key
+    const apiKey = "dcd113bba5675965ccf9e60a7e6d06e5"; // 你的 API Key
     const city = "Taipei";
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_tw`;
     const response = await fetch(url);
