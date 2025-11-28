@@ -7,22 +7,35 @@ import os
 # 設定頁面
 st.set_page_config(page_title="Radio & Weather Frame", layout="centered")
 
-st.title("📻 白六智慧相框收音機")
-st.caption("現在手機畫面下，控制區將會自動變窄，讓照片有更多空間。")
+st.title("📻 智慧相框收音機 (新增即時新聞跑馬燈)")
+st.caption("新聞跑馬燈位於相框下方，不會中斷音樂播放或頁面重載。")
 
-# ---------------- 1. Python 資料準備區 (新增本地檔案處理) ----------------
+# --- 準備新聞內容 ---
+# 這是從 Google Search 取得的即時新聞頭條，將作為跑馬燈內容。
+news_snippets = [
+    "傅崐萁提修法陸配參政免放棄國籍立院付委審查",
+    "總統任命徐斯儉為國防部副部長借重國際戰略長才",
+    "新台幣午盤貶1.2分暫收31.352元",
+    "財政部：慎防普發一萬釣魚詐騙停止解析11個假網站",
+    "黃仁勳談與Google競爭指輝達地位穩固證實已會張忠謀",
+    "雲縣推動電動車產業園區設置案已送內政部審議",
+    "香港大火死傷慘高樓逃生必知要訣：別找濕毛巾躲浴室",
+    "秋季均溫26.5度1951年來最暖氣象署估冬季偏暖雨量略少",
+    "傳川普籲高市「別挑釁北京」 日政府否認",
+    "禽流感變異成「人傳人」？ 專家示警：比新冠疫情更致命"
+]
+# 使用 ⭐⭐⭐ 分隔標題
+news_ticker_content = " ⭐ 即時新聞 ⭐ ⭐ ⭐ " + " ⭐ ⭐ ⭐ ".join(news_snippets) + " ⭐ ⭐ ⭐ "
+
+# ---------------- 1. Python 資料準備區 ----------------
 
 # 檢查本地檔案並轉 Base64
 def get_base64_image(path):
     """讀取本地檔案並轉為 Base64 字串"""
-    # 根據副檔名判斷 MIME 類型
     mime_type = 'image/jpeg'
-    if path.lower().endswith('.png'):
-        mime_type = 'image/png'
-    elif path.lower().endswith('.gif'):
-        mime_type = 'image/gif'
+    if path.lower().endswith('.png'): mime_type = 'image/png'
+    elif path.lower().endswith('.gif'): mime_type = 'image/gif'
 
-    # 讀取並編碼
     try:
         with open(path, "rb") as image_file:
             b64 = base64.b64encode(image_file.read()).decode()
@@ -31,16 +44,16 @@ def get_base64_image(path):
         return None
 
 # 定義預設圖片路徑 (請確保檔案存在 /assets/)
-default_image_paths = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"] # 請依你的實際檔名調整！
+default_image_paths = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"] 
 
-# 電台清單 (保持不變)
+# 電台清單
 stations = [
     {"name": "ICRT (英語)", "url": "https://n13.rcs.revma.com/nkdfurztxp3vv?rj-ttl=5&rj-tok=AAABmsT4bvUAqjd6WCHuBZRFQw"},
     {"name": "台北電台 (綜合)", "url": "https://streamak0130.akamaized.net/live0130lh-olzd/_definst_/fm/chunklist.m3u8"},
     {"name": "中廣流行網", "url": "https://stream.rcs.revma.com/aw9uqyxy2tzuv"},
     {"name": "好事 989", "url": "https://n13.rcs.revma.com/fkdywbc59duvv?rj-ttl=5&rj-tok=AAABmsUmzjEAUA_XnW2QqGYA1w"},
     {"name": "港都 983", "url": "https://n12.rcs.revma.com/q2m07dc59duvv?rj-ttl=5&rj-tok=AAABmsVEH6gAzFkrUTImPEJ_7w"},
-    {"name": "中廣音樂網", "url": "https://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"},
+    {"name": "中廣音樂網", "url": "https://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw"}, 
 ]
 
 # 圖片處理
@@ -53,13 +66,12 @@ if uploaded_files:
         mime_type = file.type
         img_list.append(f"data:{mime_type};base64,{b64}")
 else:
-    # 使用本地 /assets/ 圖片
+    # 使用本地 /assets/ 圖片作為預設
     for p in default_image_paths:
         b64_img = get_base64_image(p)
         if b64_img:
             img_list.append(b64_img)
 
-    # 如果本地圖片都找不到，提供一個佔位圖
     if not img_list:
         st.warning(f"⚠️ 在 /assets/ 中找不到預設圖片，請檢查路徑。")
         img_list = ["data:image/svg+xml;base64," + base64.b64encode(b'<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="562" viewBox="0 0 1000 562"><rect width="1000" height="562" fill="#555"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="60" fill="#fff">Upload Photos or Check /assets/</text></svg>').decode()]
@@ -70,7 +82,7 @@ js_stations = json.dumps(stations)
 js_images = json.dumps(img_list)
 api_key = "dacfd5f7b7e6c05162ac1340b88b6cc0" 
 
-# ---------------- 2. HTML/JS 前端核心 (優化行動版佈局) ----------------
+# ---------------- 2. HTML/JS 前端核心 ----------------
 
 html_code = f"""
 <!DOCTYPE html>
@@ -95,15 +107,41 @@ html_code = f"""
     .frame-container {{
         width: 100%;
         max-width: 650px;
-        margin: 0 auto 20px auto;
+        margin: 0 auto 10px auto; /* 留一點空間給跑馬燈 */
         border: 4px solid #333;
         border-radius: 12px;
         background: #000;
         overflow: hidden;
         position: relative;
-        transition: aspect-ratio 0.3s ease;
         aspect-ratio: 16/9;
         box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }}
+
+    /* --- 新聞跑馬燈 --- */
+    .news-ticker-container {{
+        max-width: 650px;
+        margin: 0 auto 15px auto;
+        background-color: #585d68; /* 跑馬燈底色 */
+        color: #fff;
+        padding: 5px 0;
+        overflow: hidden; /* 隱藏溢出內容 */
+        white-space: nowrap; /* 不換行 */
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }}
+
+    .news-ticker-content {{
+        display: inline-block;
+        padding-left: 100%; /* 從右側完全移入 */
+        font-weight: 500;
+        font-size: 0.9em;
+        animation: marquee 60s linear infinite; /* 60s 速度，無限循環 */
+    }}
+
+    /* 定義滾動動畫 */
+    @keyframes marquee {{
+        0% {{ transform: translateX(0%); }}
+        100% {{ transform: translateX(-100%); }}
     }}
 
     /* --- 右下角天氣浮水印 --- */
@@ -123,54 +161,24 @@ html_code = f"""
     /* --- 控制面板 --- */
     .controls {{
         display: grid;
-        grid-template-columns: 1fr 1fr; /* 桌面版：兩欄 */
+        grid-template-columns: 1fr 1fr; 
         gap: 15px;
         max-width: 650px;
         margin: auto;
     }}
-
-    .card {{
-        background: #262730;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #363940;
-    }}
     
+    .card {{ background: #262730; padding: 15px; border-radius: 8px; border: 1px solid #363940; }}
     .card-title {{ font-size: 0.9rem; color: #bbb; margin-bottom: 8px; font-weight: bold;}}
     .station-name {{ color: #fab005; font-weight: bold; margin-bottom: 5px; display: block; }}
-
-    /* 確保所有按鈕/輸入框/音訊播放器在手機上不會太高 */
-    button, input[type="text"], audio {{
-        /* ... 樣式保持不變 ... */
-    }}
-
-    /* === 行動裝置 (Mobile) 優化：資訊在下沿一排 === */
+    
+    /* === 行動裝置 (Mobile) 優化：資訊在下沿一排 (堆疊) === */
     @media (max-width: 700px) {{
-        .frame-container {{
-            margin-bottom: 10px; /* 減少與控制區的間距 */
-        }}
-        
-        .controls {{
-            grid-template-columns: 1fr; /* 堆疊成一欄 */
-            gap: 10px;
-        }}
-        
-        .card {{
-            padding: 10px; /* 減少卡片內邊距 */
-        }}
-        
-        .card-title {{
-            display: none; /* 隱藏標題節省空間 */
-        }}
-
-        .input-group {{
-            flex-direction: column; /* 將城市輸入和按鈕堆疊 */
-            gap: 5px;
-        }}
-        
-        audio {{
-            height: 30px; /* 縮小音訊播放器高度 */
-        }}
+        .frame-container {{ margin-bottom: 10px; }}
+        .controls {{ grid-template-columns: 1fr; gap: 10px; }}
+        .card {{ padding: 10px; }}
+        .card-title {{ display: none; }}
+        .input-group {{ flex-direction: column; gap: 5px; }}
+        audio {{ height: 30px; }}
         
         /* 縮小並移動天氣浮水印 */
         .weather-badge {{
@@ -182,6 +190,13 @@ html_code = f"""
         .weather-temp {{ font-size: 1.2rem; }}
         .weather-desc {{ font-size: 0.7rem; }}
         .time-display {{ font-size: 0.7rem; }}
+
+        /* 手機上讓跑馬燈慢一點 */
+        @keyframes marquee {{
+            0% {{ transform: translateX(0%); }}
+            100% {{ transform: translateX(-100%); }}
+        }}
+        .news-ticker-content {{ animation: marquee 90s linear infinite; }} /* 變慢 */
     }}
 
     /* --- 其他樣式維持不變 --- */
@@ -217,6 +232,10 @@ html_code = f"""
         </div>
     </div>
 
+    <div class="news-ticker-container">
+        <div class="news-ticker-content" id="newsTickerContent">{news_ticker_content}</div>
+    </div>
+
     <div class="controls">
         <div class="card">
             <div class="card-title">🌦️ 城市 & 音樂</div>
@@ -246,7 +265,7 @@ html_code = f"""
     </div>
 
     <script>
-        // ... (JS 邏輯保持不變，與上一個版本相同) ...
+        // JS 邏輯 (維持不變)
         const stations = {js_stations};
         const images = {js_images};
         const apiKey = "{api_key}";
@@ -375,4 +394,4 @@ html_code = f"""
 </html>
 """
 
-components.html(html_code, height=800)
+components.html(html_code, height=820)
