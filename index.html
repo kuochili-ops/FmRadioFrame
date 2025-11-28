@@ -4,61 +4,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>智慧相框收音機</title>
+<title>白六智慧相框收音機</title>
 https://cdn.jsdelivr.net/npm/hls.js@latest</script>
 <style>
-    body {
-        font-family: "Segoe UI", "Helvetica Neue", sans-serif;
-        background-color: #0e1117;
-        color: white;
-        text-align: center;
-        margin: 0;
-        padding: 10px;
-    }
-    .frame-container {
-        width: 100%;
-        max-width: 650px;
-        margin: 0 auto 10px auto;
-        border: 4px solid #333;
-        border-radius: 12px;
-        background: #000;
-        overflow: hidden;
-        position: relative;
-        aspect-ratio: 16/9;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
-    .frame-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-    .controls {
-        max-width: 650px;
-        margin: auto;
-    }
-    button {
-        background-color: #1E90FF;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        margin: 5px;
-    }
-    audio {
-        width: 100%;
-        margin-top: 10px;
-    }
+    body { font-family: "Segoe UI", sans-serif; background-color: #0e1117; color: white; text-align: center; margin: 0; padding: 10px; }
+    .frame-container { width: 100%; max-width: 650px; margin: 0 auto 10px auto; border: 4px solid #333; border-radius: 12px; background: #000; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .frame-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .controls { max-width: 650px; margin: auto; }
+    button { background-color: #1E90FF; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; margin: 5px; }
+    audio { width: 100%; margin-top: 10px; }
+    input[type="file"] { margin: 10px; color: white; }
 </style>
 </head>
 <body>
 
-<h1>📻 智慧相框收音機</h1>
+<h1>📻 白六智慧相框收音機</h1>
 
-<div class="frame-container" id="frameBox">
-    <img id="slideImg" class="frame-img" src="assets/photo1.jpg">
+<div class="frame-container">
+    assets/photo1.jpg
+</div>
+
+<!-- 使用者上傳照片 -->
+<div>
+    <label>📸 選擇照片（可多選）：</label>
+    <input type="file" id="photoInput" accept="image/*" multiple>
 </div>
 
 <div class="controls">
@@ -81,13 +50,38 @@ const stations = [
     { name: "中廣音樂網", url: "http://n12.rcs.revma.com/ndk05tyy2tzuv?rj-ttl=5&rj-tok=AAABmsT4lG0A7BfBML2R8HqECw" }
 ];
 
-// ✅ 本地圖片輪播
-const images = ["assets/photo1.jpg", "assets/photo2.jpg", "assets/photo3.jpg"];
+// ✅ 預設 assets 圖片
+let images = [
+    "assets/photo1.jpg",
+    "assets/photo2.jpg",
+    "assets/photo3.jpg",
+    "assets/photo4.jpg",
+    "assets/photo5.jpg"
+];
 let currentImgIdx = 0;
+
+// ✅ 輪播圖片
 setInterval(() => {
-    currentImgIdx = (currentImgIdx + 1) % images.length;
-    document.getElementById("slideImg").src = images[currentImgIdx];
+    if (images.length > 0) {
+        currentImgIdx = (currentImgIdx + 1) % images.length;
+        document.getElementById("slideImg").src = images[currentImgIdx];
+    }
 }, 5000);
+
+// ✅ 使用者上傳照片
+document.getElementById("photoInput").addEventListener("change", function(event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+        images = []; // 清空原本的圖片
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                images.push(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+});
 
 // ✅ 播放電台
 let currentStationIdx = 0;
@@ -124,4 +118,3 @@ function prevStation() {
 playStation(0);
 </script>
 </body>
-</html>
