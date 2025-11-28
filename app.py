@@ -4,6 +4,8 @@ import base64
 # ---------------- 初始化狀態 ----------------
 if "current_station" not in st.session_state:
     st.session_state.current_station = 0
+if "frame_ratio" not in st.session_state:
+    st.session_state.frame_ratio = "16/9"
 
 # ---------------- 上傳照片 ----------------
 uploaded_files = st.file_uploader("📸 上傳相片（最多 5 張）", type=["jpg","jpeg","png"], accept_multiple_files=True)
@@ -14,11 +16,35 @@ if uploaded_files:
         b64 = base64.b64encode(file.read()).decode()
         img_list.append(f"data:image/png;base64,{b64}")
 
-    # 前端 JS 輪播（每 5 秒切換）
+    # 相框比例選項
+    ratio_option = st.selectbox("選擇相框比例", ["16/9", "4/3", "1/1"], index=["16/9","4/3","1/1"].index(st.session_state.frame_ratio))
+    st.session_state.frame_ratio = ratio_option
+
+    # JS 輪播 + 固定相框
     st.markdown(f"""
-    <div style="text-align:center;">
-      <img id="slideshow" src="{img_list[0]}" width="500">
+    <style>
+    .frame {{
+        width: 100%;
+        max-width: 600px;
+        aspect-ratio: {st.session_state.frame_ratio};
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        margin: auto;
+    }}
+    .frame img {{
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }}
+    </style>
+
+    <div class="frame">
+      <img id="slideshow" src="{img_list[0]}">
     </div>
+
     <script>
     var images = {img_list};
     var index = 0;
@@ -40,7 +66,7 @@ stations = [
 
 station = stations[st.session_state.current_station]
 
-# 頻道名稱（白字黑底）
+# 頻道名稱
 st.markdown(f"""
 <div style="text-align:center; margin-top:10px;">
   <span style="background:rgba(0,0,0,0.5); color:white; padding:6px 12px; border-radius:6px; font-size:16px; font-weight:bold;">
